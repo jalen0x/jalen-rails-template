@@ -1,0 +1,3 @@
+CREATE DATABASE ying_jalenx_me_production_cache;
+CREATE DATABASE ying_jalenx_me_production_queue;
+CREATE DATABASE ying_jalenx_me_production_cable;

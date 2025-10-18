@@ -83,7 +83,8 @@ production:
     <<: *default
     database: ying_jalenx_me_production
     username: ying_jalenx_me
-    password: <%= ENV["YING_JALENX_ME_DATABASE_PASSWORD"] %>
+    password: <%= ENV["POSTGRES_PASSWORD"] %>
+    host: <%= ENV["DB_HOST"] %>
   cache:
     <<: *primary_production
     database: ying_jalenx_me_production_cache
