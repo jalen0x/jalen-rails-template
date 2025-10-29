@@ -23,5 +23,8 @@ module YingJalenxMe
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Exclude JavaScript assets directory from Rails asset pipeline (handled by esbuild)
+    config.assets.excluded_paths << Rails.root.join("app/assets/javascripts")
   end
 end
