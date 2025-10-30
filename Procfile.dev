@@ -1,4 +1,4 @@
-web: bin/rails server
+web: bin/rails server -p $PORT -b 0.0.0.0
 css: bin/rails tailwindcss:watch
 js: cd "$PWD" && yarn build --watch
 worker: bin/jobs
