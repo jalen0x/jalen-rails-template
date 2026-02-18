@@ -1,10 +1,38 @@
+/* Inter font for Flowbite - must be before @import "tailwindcss" */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
 @import "tailwindcss";
 
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+/* Flowbite integration
+ *
+ * The default theme (flowbite/src/themes/default) provides semantic color
+ * variables for both light and dark modes. Use these instead of hardcoded
+ * Tailwind color classes:
+ *
+ *   Background:  bg-brand, bg-neutral-primary-soft, bg-danger-soft, ...
+ *   Text:        text-heading, text-body, text-fg-brand, text-fg-danger, ...
+ *   Border:      border-default, border-gray, border-danger, ...
+ *   Ring/Focus:  focus:ring-brand, focus:ring-brand-subtle, ...
+ *
+ * To customize brand colors, override the semantic variables — not the
+ * color scale. For example, to switch brand from blue to purple:
+ *
+ *   @theme {
+ *     --color-brand:        var(--color-purple-700);
+ *     --color-brand-soft:   var(--color-purple-100);
+ *     --color-brand-softer: var(--color-purple-50);
+ *     --color-brand-strong: var(--color-purple-800);
+ *     --color-fg-brand:     var(--color-purple-700);
+ *   }
+ *
+ * See node_modules/flowbite/src/themes/default.css for the full variable list.
+ */
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
 @source "../../../node_modules/flowbite";
-
-@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   button:not(:disabled),
@@ -29,21 +57,4 @@
   button[disabled] .when-enabled {
     display: none;
   }
-}
-
-@theme {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-
-  --font-sans: 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-body: 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace';
 }

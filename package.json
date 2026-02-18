@@ -5,9 +5,9 @@
     "build": "esbuild app/assets/javascripts/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets"
   },
   "dependencies": {
-    "flowbite": "^3.1.2"
+    "flowbite": "^4.0.1"
   },
   "devDependencies": {
-    "esbuild": "^0.25.1"
+    "esbuild": "^0.27.3"
   }
 }
