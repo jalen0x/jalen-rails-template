@@ -58,6 +58,7 @@ namespace :setup do
     # Render templates
     render_database_config(db_prefix)
     render_deploy_config(project_name, db_prefix, web_ip, db_host, db_accessory_host)
+    render_init_sql(db_prefix)
 
     puts "\n✅ Project setup complete!"
     puts "\nNext steps:"
@@ -98,5 +99,19 @@ namespace :setup do
     File.write(output_path, result)
 
     puts "✓ Updated deploy.yml"
+  end
+
+  def render_init_sql(db_prefix)
+    output_path = Rails.root.join("config", "init.sql")
+    sql = <<~SQL
+      -- Managed by `rake setup:project`
+      CREATE DATABASE #{db_prefix}_production_cache;
+      CREATE DATABASE #{db_prefix}_production_queue;
+      CREATE DATABASE #{db_prefix}_production_cable;
+    SQL
+
+    File.write(output_path, sql)
+
+    puts "✓ Updated init.sql"
   end
 end
