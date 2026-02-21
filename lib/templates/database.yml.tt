@@ -70,7 +70,7 @@ production:
     <<: *default
     database: <%= db_prefix %>_production
     username: <%= db_prefix %>
-    password: <%%= ENV["POSTGRES_PASSWORD"] %>
+    password: <%%= Rails.application.credentials.dig(:database, :password) %>
     host: <%%= ENV["DB_HOST"] %>
   cache:
     <<: *primary_production

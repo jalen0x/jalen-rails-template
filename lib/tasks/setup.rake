@@ -23,42 +23,21 @@ namespace :setup do
     web_ip = STDIN.gets.chomp.strip
     web_ip = nil if web_ip.empty?
 
-    print "Configure database accessory? (y/N): "
-    configure_db_accessory = STDIN.gets.chomp.strip.downcase == "y"
-
-    db_accessory_host = nil
     db_host = nil
-
-    if configure_db_accessory
-      print "Enter database accessory host IP: "
-      db_accessory_host = STDIN.gets.chomp.strip
-      if db_accessory_host.empty?
-        puts "Error: Database accessory host cannot be empty"
-        exit 1
-      end
-    else
-      print "Enter database host IP for DB_HOST env (leave empty to keep current): "
-      db_host = STDIN.gets.chomp.strip
-      db_host = nil if db_host.empty?
-    end
+    print "Enter database host IP for DB_HOST env (leave empty to keep current): "
+    db_host = STDIN.gets.chomp.strip
+    db_host = nil if db_host.empty?
 
     puts "\nConfiguring project: #{project_name}"
     puts "Database prefix: #{db_prefix}"
     puts "Domain: staging.#{project_name}"
     puts "Web server IP: #{web_ip || '(unchanged)'}"
-    if configure_db_accessory
-      puts "Database accessory: enabled (#{db_accessory_host})"
-      puts "Database host: #{db_prefix}-db (via Kamal docker network)"
-    else
-      puts "Database accessory: disabled"
-      puts "Database host: #{db_host || '(unchanged)'}"
-    end
+    puts "Database host: #{db_host || '(unchanged)'}"
     puts ""
 
     # Render templates
     render_database_config(db_prefix)
-    render_deploy_config(project_name, db_prefix, web_ip, db_host, db_accessory_host)
-    render_init_sql(db_prefix)
+    render_deploy_config(project_name, db_prefix, web_ip, db_host)
 
     puts "\n✅ Project setup complete!"
     puts "\nNext steps:"
@@ -85,7 +64,7 @@ namespace :setup do
     puts "✓ Updated database.yml"
   end
 
-  def render_deploy_config(project_name, db_prefix, web_ip, db_host, db_accessory_host)
+  def render_deploy_config(project_name, db_prefix, web_ip, db_host)
     template_path = Rails.root.join("lib", "templates", "deploy.yml.tt")
     output_path = Rails.root.join("config", "deploy.yml")
 
@@ -101,17 +80,4 @@ namespace :setup do
     puts "✓ Updated deploy.yml"
   end
 
-  def render_init_sql(db_prefix)
-    output_path = Rails.root.join("config", "init.sql")
-    sql = <<~SQL
-      -- Managed by `rake setup:project`
-      CREATE DATABASE #{db_prefix}_production_cache;
-      CREATE DATABASE #{db_prefix}_production_queue;
-      CREATE DATABASE #{db_prefix}_production_cable;
-    SQL
-
-    File.write(output_path, sql)
-
-    puts "✓ Updated init.sql"
-  end
 end

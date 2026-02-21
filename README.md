@@ -87,7 +87,6 @@ This template is pre-configured for deployment with [Kamal](https://kamal-deploy
 # Create .kamal/secrets file with your credentials
 KAMAL_REGISTRY_PASSWORD=your_github_token
 RAILS_MASTER_KEY=your_master_key
-POSTGRES_PASSWORD=your_postgres_password
 ```
 
 2. Deploy your application:

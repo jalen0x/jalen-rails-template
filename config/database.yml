@@ -70,7 +70,7 @@ production:
     <<: *default
     database: jalen_rails_template_production
     username: jalen_rails_template
-    password: <%= ENV["POSTGRES_PASSWORD"] %>
+    password: <%= Rails.application.credentials.dig(:database, :password) %>
     host: <%= ENV["DB_HOST"] %>
   cache:
     <<: *primary_production
