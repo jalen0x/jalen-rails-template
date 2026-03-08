@@ -41,11 +41,6 @@ class="cursor-pointer bg-neutral-secondary-medium border border-default-medium t
 
 ## Solid Queue Background Job Rules
 
-**Never use `discard_on` to discard jobs!**
+**Never use `discard_on` to discard jobs.** Let jobs fail — retry, debugging, and recovery become very difficult otherwise. Deleting a dead job is just one click. Don't rescue exceptions without re-raising either.
 
-Reason: Never discard jobs under any circumstances - retry, debugging, and recovery become very difficult otherwise. Deleting a dead job is just one click.
-
-- ❌ Don't use `discard_on` to silently discard failed jobs
-- ❌ Don't rescue exceptions without re-raising
-- ✅ Let jobs fail into failed jobs for easy debugging and retry
 - ⚠️ Rails 8.1+: Use `wait: :polynomially_longer` instead of `:exponentially_longer` (renamed)
