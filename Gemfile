@@ -46,6 +46,29 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 gem "aws-sdk-s3", require: false
 
+# Authentication & authorization
+gem "devise", "~> 5.0.0.rc"
+gem "pundit", "~> 2.1"
+
+# OAuth (GitHub only)
+gem "omniauth", "~> 2.1"
+gem "omniauth-rails_csrf_protection", "~> 2.0"
+gem "omniauth-github"
+
+# Data layer
+gem "discard", "~> 1.4"
+gem "prefixed_ids", "~> 1.2"
+
+# User experience
+gem "pagy", "~> 43.0"
+gem "noticed", "~> 3.0"
+gem "local_time", "~> 3.0"
+gem "name_of_person", "~> 1.0"
+gem "invisible_captcha", "~> 2.0"
+
+# Component system
+gem "view_component", "~> 3"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -55,17 +78,29 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Lint ERB templates for consistent style
+  gem "erb_lint", require: false
+
+  # Patch-level verification for Bundler [https://github.com/rubysec/bundler-audit]
+  gem "bundler-audit", require: false
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Component preview UI at /lookbook
+  gem "lookbook", "~> 2"
 end
 
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # Mock HTTP requests in tests
+  gem "webmock"
 end
 
 gem "jsbundling-rails", "~> 1.3"

@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+set -e
+
+echo "==> rubocop"
+bin/rubocop
+
+echo "==> brakeman"
+bin/brakeman --no-pager
+
+echo "==> bundler-audit"
+bin/bundler-audit check --update
+
+echo "==> erb_lint"
+bundle exec erb_lint --lint-all
+
+echo "==> tests"
+bin/rails db:test:prepare zeitwerk:check test
+
+echo "==> system tests"
+bin/rails test:system

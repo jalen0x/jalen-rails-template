@@ -1,0 +1,3 @@
+<%= form_with url: "#", scope: :preview do |form| %>
+  <%= render(FormField::CheckboxComponent.new(form: form, field: :remember_me, label: "Remember me")) %>
+<% end %>

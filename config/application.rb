@@ -26,5 +26,8 @@ module YingJalenxMe
 
     # Exclude JavaScript assets directory from Rails asset pipeline (handled by esbuild)
     config.assets.excluded_paths << Rails.root.join("app/assets/javascripts")
+
+    # ViewComponent previews (rendered via Lookbook at /lookbook in development)
+    config.view_component.preview_paths << Rails.root.join("test/components/previews").to_s
   end
 end

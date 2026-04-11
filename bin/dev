@@ -1,16 +1,66 @@
 #!/usr/bin/env sh
 
-if ! gem list foreman -i --silent; then
-  echo "Installing foreman..."
-  gem install foreman
+find_available_port() {
+  if command -v lsof > /dev/null 2>&1; then
+    scanner="lsof"
+  elif command -v ss > /dev/null 2>&1; then
+    scanner="ss"
+  else
+    echo "Error: neither lsof nor ss found. Set PORT manually." >&2
+    return 1
+  fi
+
+  port=3000
+  while [ $port -le 3099 ]; do
+    case "$scanner" in
+      lsof)
+        if ! lsof -iTCP:"$port" -sTCP:LISTEN > /dev/null 2>&1; then
+          echo "$port"; return 0
+        fi
+        ;;
+      ss)
+        if ! ss -Htln "sport = :$port" | grep -q .; then
+          echo "$port"; return 0
+        fi
+        ;;
+    esac
+    port=$((port + 1))
+  done
+
+  echo "Error: no available port in 3000-3099." >&2
+  return 1
+}
+
+if [ -n "$PORT" ]; then
+  echo "Using PORT=$PORT (from environment)"
+else
+  if ! PORT=$(find_available_port); then
+    exit 1
+  fi
+  export PORT
+  echo "Starting on port $PORT..."
 fi
 
-# Default to port 3000 if not specified
-export PORT="${PORT:-3000}"
-
-# Let the debug gem allow remote connections,
-# but avoid loading until `debugger` is called
+# Let the debug gem allow remote connections, but avoid loading until
+# `debugger` is called.
 export RUBY_DEBUG_OPEN="true"
 export RUBY_DEBUG_LAZY="true"
 
-exec foreman start -f Procfile.dev "$@"
+if ! command -v overmind > /dev/null 2>&1; then
+  echo "Installing overmind..."
+  gem install overmind
+fi
+
+export OVERMIND_SOCKET="${TMPDIR:-/tmp}/overmind-$(echo "$PWD" | cksum | cut -c1-8).sock"
+
+if [ -S "$OVERMIND_SOCKET" ]; then
+  if overmind echo -s "$OVERMIND_SOCKET" > /dev/null 2>&1; then
+    echo "Overmind already running on this project (socket: $OVERMIND_SOCKET)"
+    exit 1
+  else
+    echo "Removing stale socket: $OVERMIND_SOCKET"
+    rm -f "$OVERMIND_SOCKET"
+  fi
+fi
+
+exec overmind start -T -f Procfile.dev "$@"

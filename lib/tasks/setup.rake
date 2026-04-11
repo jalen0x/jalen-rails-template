@@ -74,5 +74,4 @@ namespace :setup do
 
     puts "✓ Updated deploy.yml"
   end
-
 end
