@@ -38,6 +38,9 @@ env:
   secret:
     - RAILS_MASTER_KEY
   clear:
+    # Resolves to the `jalen_rails_template-db` accessory container inside the Kamal Docker network.
+    DB_HOST: jalen_rails_template-db
+
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
     SOLID_QUEUE_IN_PUMA: true
@@ -47,8 +50,6 @@ env:
 
     # Set number of cores available to the application on each server (default: 1).
     # WEB_CONCURRENCY: 2
-
-    # DB_HOST: 192.168.0.2
 
     # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
@@ -89,3 +90,21 @@ builder:
 # Use a different ssh user than root
 # ssh:
 #   user: app
+
+# PostgreSQL runs as a Kamal-managed accessory container on the same host,
+# reached by the app container through the `kamal` Docker network under the
+# name `jalen_rails_template-db`. No ports are published to the host or LAN.
+accessories:
+  db:
+    image: postgres:18
+    host: 192.168.0.1
+    env:
+      clear:
+        POSTGRES_USER: jalen_rails_template
+        POSTGRES_DB: jalen_rails_template_production
+      secret:
+        - POSTGRES_PASSWORD
+    files:
+      - db/production/init.sh:/docker-entrypoint-initdb.d/10-init.sh
+    directories:
+      - data:/var/lib/postgresql

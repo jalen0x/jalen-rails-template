@@ -23,21 +23,16 @@ namespace :setup do
     web_ip = STDIN.gets.chomp.strip
     web_ip = nil if web_ip.empty?
 
-    db_host = nil
-    print "Enter database host IP for DB_HOST env (leave empty to keep current): "
-    db_host = STDIN.gets.chomp.strip
-    db_host = nil if db_host.empty?
-
     puts "\nConfiguring project: #{project_name}"
     puts "Database prefix: #{db_prefix}"
     puts "Domain: staging.#{project_name}"
     puts "Web server IP: #{web_ip || '(unchanged)'}"
-    puts "Database host: #{db_host || '(unchanged)'}"
+    puts "Database: Kamal `db` accessory on the web server (postgres:18)"
     puts ""
 
     # Render templates
     render_database_config(db_prefix)
-    render_deploy_config(project_name, db_prefix, web_ip, db_host)
+    render_deploy_config(project_name, db_prefix, web_ip)
 
     puts "\n✅ Project setup complete!"
     puts "\nNext steps:"
@@ -64,7 +59,7 @@ namespace :setup do
     puts "✓ Updated database.yml"
   end
 
-  def render_deploy_config(project_name, db_prefix, web_ip, db_host)
+  def render_deploy_config(project_name, db_prefix, web_ip)
     template_path = Rails.root.join("lib", "templates", "deploy.yml.tt")
     output_path = Rails.root.join("config", "deploy.yml")
 

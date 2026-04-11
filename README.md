@@ -34,13 +34,12 @@ bin/rails setup:project
 You will be prompted to enter:
 - **Project name** (e.g., `musicforge.ai`) - will be converted to Rails-style database naming
 - **Web server IP** - leave empty to keep current settings
-- **Configure database accessory?** (y/N) - choose `y` if deploying database with Kamal
-  - If yes: Enter database accessory host IP
-  - If no: Optionally enter external database host IP
 
 This will automatically configure:
 - `config/database.yml` - Database names and credentials
-- `config/deploy.yml` - Service name, image name, servers, domain, and accessories
+- `config/deploy.yml` - Service name, image name, servers, domain, and the
+  `db` Kamal accessory (PostgreSQL 18 running on the same host, reachable by
+  the app container through the `kamal` Docker network as `<prefix>-db`)
 
 Next, create your Rails credentials file:
 
@@ -79,22 +78,44 @@ You can add background workers or other services to `Procfile.dev` as needed.
 
 This template is pre-configured for deployment with [Kamal](https://kamal-deploy.org/).
 
-### First Time Setup
+### Secrets pattern
 
-1. Configure your secrets in `.kamal/secrets`:
+The template follows a "minimal 1Password" pattern:
 
-```bash
-# Create .kamal/secrets file with your credentials
-KAMAL_REGISTRY_PASSWORD=your_github_token
-RAILS_MASTER_KEY=your_master_key
-```
+- **1Password** holds only `RAILS_MASTER_KEY` — everything else lives inside
+  Rails production credentials and is decrypted at deploy time by the
+  commands in `.kamal/secrets`.
+- **`config/credentials/production.yml.enc`** is the single source of truth
+  for `kamal.registry_password`, `database.password`, `ssl.certificate`,
+  `ssl.private_key`, and any app-level secrets (`secret_key_base`,
+  `mcp.token`, `cloudflare.*`, …). Rails does **not** merge shared and
+  environment-specific credentials — when a production-specific file exists,
+  it is used alone, so production credentials must contain every key
+  Rails needs in production, including `secret_key_base`.
+- Align `config/credentials/production.key` with `config/master.key` so the
+  container can decrypt both shared and production credentials using the
+  same `RAILS_MASTER_KEY` env var:
 
-2. Deploy your application:
+  ```bash
+  cp config/master.key config/credentials/production.key
+  ```
 
-```bash
-bin/kamal setup    # First time only - sets up Docker and accessories
-bin/kamal deploy   # Deploy the application
-```
+### First-time setup
+
+1. Point the `SECRETS=$(kamal secrets fetch …)` line in `.kamal/secrets` at
+   the 1Password vault/item holding your `RAILS_MASTER_KEY`.
+2. Create production credentials and populate them:
+
+   ```bash
+   EDITOR=vim bin/rails credentials:edit -e production
+   ```
+
+3. Deploy:
+
+   ```bash
+   bin/kamal setup    # First time only — installs Docker + boots the `db` accessory
+   bin/kamal deploy   # Deploy the application
+   ```
 
 ### Subsequent Deployments
 
