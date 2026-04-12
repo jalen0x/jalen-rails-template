@@ -86,6 +86,47 @@ When creating a job for an external call:
 - [ ] Broadcast via Turbo Streams so the UI reflects the result
 - [ ] Don't rescue-and-swallow — re-raise unknown errors so the queue and monitoring see them
 
+## Correct Usage of Callback Enqueuing
+
+Enqueuing jobs from callbacks is a Rails Core–endorsed pattern (DHH: "all jobs should enqueue after the commit"), but rules apply.
+
+### Transaction-internal callbacks (`after_create` / `after_save`): don't enqueue directly
+
+These callbacks run inside the DB transaction. The worker may execute the job before the record commits → `RecordNotFound`.
+
+On Rails 8.1, enable protection manually in `ApplicationJob`:
+
+```ruby
+self.enqueue_after_transaction_commit = true
+```
+
+This becomes the default in Rails 8.2. Once enabled, `perform_later` inside transaction callbacks is automatically deferred until after commit.
+
+### `after_commit` callbacks are appropriate for secondary responsibilities
+
+`after_commit` runs after the transaction commits. Suitable for **secondary responsibilities** (37signals, Jorge Manrubia's classification):
+
+- Notification emails, push notifications
+- Audit logs
+- Stats / cache invalidation
+- Turbo Stream broadcasts
+
+These are orthogonal concerns — declaratively plugged in, not affecting core logic.
+
+### Primary business logic goes in the Service layer
+
+**Core workflow orchestration** (cross-model operations, complex conditional branches, flows needing Result Objects) does not belong in callbacks. Use the Service layer for explicit invocation. This is a readability and maintainability concern:
+
+- Callbacks are implicit — complex flows destroy linear readability
+- High fan-in model callbacks affect all creation paths (seed, migration, console) — not all of which should trigger the side effect
+- Service layer flows can be tested independently
+
+### Code review signals for callback enqueuing
+
+- `after_create` / `after_save` + `perform_later` / `deliver_later` → confirm `enqueue_after_transaction_commit` is enabled; otherwise require `after_commit`
+- `after_commit` + simple enqueue → OK (secondary responsibility)
+- `after_commit` + complex business logic → suggest moving to Service layer
+
 ## Code Review Signal
 
 Flag these patterns in controller code — they indicate synchronous external calls:

@@ -35,6 +35,30 @@ rake setup:project    # Interactive — renders config/database.yml and config/d
 - **Components**: ViewComponent under `app/components/`. Previews at `/lookbook` (development only) from `test/components/previews/`.
 - **Deployment**: Kamal with project-specific `config/deploy.yml` + Cloudflare R2 for Active Storage in production.
 
+### Four-Layer Model
+
+All code in this app falls into one of four categories:
+
+1. **Boundaries** — receive input, trigger logic, produce output. Controllers, Jobs, Mailers, Channels, Rake tasks. They are configuration, not OOP — keep them thin.
+2. **Views** — ERB templates, JavaScript, CSS, Helpers, View Components. Server-side rendering is the default.
+3. **Models** — Active Record (database) and Active Model (non-DB resources). Hold only configuration DSL, pure-DB class methods, and core domain instance methods. No business logic orchestration.
+4. **Everything Else** — Services (`app/services/`), tests, config, dependencies. Business logic lives here, not in Active Record.
+
+Rails gives you a complete architecture for free — don't build "a framework within the framework." The gap Rails doesn't fill is **where business logic goes**: it goes in the Service layer, not in "fat models."
+
+### Design Philosophy
+
+Inspired by *Sustainable Web Development with Ruby on Rails* (D. Copeland, 2025 edition):
+
+- **Sustainability over cleverness** — changes tomorrow should be as easy as changes today, regardless of who makes them. No "we'll clean it up later" — that never happens.
+- **Consistency** — solve the same problem the same way everywhere. Individual preference is not a valid input to architectural decisions. Consistency enables confident automation and migration (Stitch Fix: 3-person team migrated 100+ apps from Heroku to AWS because architecture was uniform).
+- **Quality is non-negotiable** — when deadlines hit, cut scope, not quality. Only developers know which scope can be cut — this requires understanding the business context.
+- **Minimize carrying cost** — every line of code, every dependency, every inconsistency is a cost you pay continuously. One-time investments that significantly reduce carrying cost are worth making (e.g., `bin/setup` over documentation, Service layer over fat models, design system over per-page CSS).
+- **Measure before optimizing** — don't optimize without measurement. The bottleneck is often not where you think (real story: suspected slow app code, actual cause was warehouse Wi-Fi).
+- **Monitor business outcomes, not just HTTP 5xx** — registration count dropping could be a marketing link pointing to staging, not a code bug. If you only monitor `SessionsController#create` returning 200, you'll never find it.
+- **Automation > documentation** — `bin/setup`, `bin/dev`, `bin/ci` are the README. Scripts don't go stale; documents always do.
+- **Callbacks for secondary concerns, Service layer for primary logic** — callbacks are good for simple, orthogonal side effects (notifications, audit, cache). Core business workflows belong in explicit Service classes where they're readable, testable, and don't inflate model fan-in (37signals, Jorge Manrubia: "plugging in a secondary function in a declarative way").
+
 ## Key Rules
 
 ### Soft Delete (discard gem)
@@ -142,13 +166,17 @@ When compressing context, preserve in priority order:
 
 Detailed guides are in `.claude/rules/` (auto-loaded by file path glob):
 
+- `api.md` — API endpoint architecture, auth, and JSON conventions
+- `async-external-calls.md` — Controller → Job → Turbo broadcast pattern for external I/O
+- `database.md` — DB schema, migration, and constraint rules
 - `jobs.md` — Solid Queue job standards
-- `rails-models.md` — Model conventions
+- `mailers.md` — Mailer conventions, styling, and testing
+- `r2-storage.md` — Cloudflare R2 Active Storage usage
 - `rails-controllers.md` — Controller conventions
+- `rails-models.md` — Model conventions
 - `rails-views.md` — View conventions
-- `stimulus-js.md` — Stimulus controller conventions
+- `rake-tasks.md` — Rake task organization and conventions
 - `service-objects.md` — Service object conventions
+- `stimulus-js.md` — Stimulus controller conventions
 - `tailwind-v4.md` — Tailwind v4 rules, breaking changes, design guidelines
 - `testing.md` — Minitest conventions
-- `async-external-calls.md` — Controller → Job → Turbo broadcast pattern for external I/O
-- `r2-storage.md` — Cloudflare R2 Active Storage usage

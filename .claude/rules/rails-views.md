@@ -41,3 +41,58 @@ paths:
 - Non-controller JS goes in `app/javascript/src/`.
 
 Color classes and button styles: see `tailwind-v4.md` → "UI Color Classes".
+
+## Semantic HTML Before Layout
+
+1. First, mark up all content and controls with correct semantic tags (`<article>`, `<section>`, `<nav>`, `<ul>`, `<h2>`) — ignore styling.
+2. **Then** add `<div>`/`<span>` for layout and styling purposes.
+
+Even when redesigning the UI, `<ul>` is still `<ul>` — semantic structure is stable. `<div>` / `<span>` exist purely for visual presentation.
+
+## Partials & Strict Locals (Rails 7.1+)
+
+Declare at the top of the partial:
+
+```erb
+<%# locals: (widget:, show_cta: true) %>
+```
+
+Missing or misspelled locals raise immediately instead of silently returning nil. Partials **may only reference declared locals** — never touch `@instance_variables`.
+
+## Active Model Instead of Presenter/Decorator
+
+When a view needs "Widget + extra behavior" (`local_to_user?`, `display_name`, etc.), don't create `WidgetPresenter` or `WidgetDecorator`. Two problems:
+- Variable naming confusion (`@widget` or `@widget_presenter`?)
+- Partials don't know which type to expect
+
+Correct approach: build a view-specific resource class with `include ActiveModel::Model` (implement `persisted?` and `to_key` so Rails routing/form helpers work seamlessly). View code stays unchanged.
+
+## Sorting Belongs in the View
+
+```erb
+<%= options_from_collection_for_select(@manufacturers.sort_by(&:name), :id, :name) %>
+```
+
+"Making data consumable for the user" is a view concern — the controller provides raw data.
+
+## Fake Errors for Styling
+
+Before backend validation logic is complete, manually inject errors to style the error states:
+
+```ruby
+def new
+  @widget = Widget.new
+  @widget.errors.add(:name, :blank)
+  @widget.errors.add(:price_cents, :not_a_number)
+end
+```
+
+Avoids debugging frontend and backend simultaneously. Remove the temporary code after styling is done.
+
+## Helpers
+
+- Helpers do only two things: (1) expose global UI state (`current_user`, feature flags), (2) generate inline markup too small to justify a partial or View Component.
+- **Never build HTML via string interpolation** (XSS risk) — always use `content_tag`, `tag.div`, etc. If you must use `html_safe`, add a comment explaining why it's safe.
+- Concepts users "speak, write down, or pass around in emails" (e.g. item ID `1234-567`) are **domain concepts** — put them in model methods, not helpers. Once in a helper, they get copy-pasted across the codebase.
+
+Mailer rules are in the separate `mailers.md`.
