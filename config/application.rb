@@ -29,7 +29,7 @@ module YingJalenxMe
     config.assets.excluded_paths << Rails.root.join("app/assets/javascripts")
 
     # ViewComponent previews (rendered via Lookbook at /lookbook in development)
-    config.view_component.preview_paths << Rails.root.join("test/components/previews").to_s
+    config.view_component.preview_paths = [ Rails.root.join("test/components/previews").to_s ]
 
     # Prefer app/ over the internal template base so downstream overrides win.
     config.railties_order = [ :main_app, TemplateBase::Engine, :all ]
