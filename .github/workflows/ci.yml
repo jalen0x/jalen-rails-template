@@ -103,14 +103,16 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20'
-          cache: 'yarn'
+          bun-version: latest
 
       - name: Install JavaScript dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Build JavaScript assets
+        run: bun run build
 
       - name: Run tests
         env:
