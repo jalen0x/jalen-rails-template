@@ -6,9 +6,9 @@ Welcome! This is a Rails application template with pre-configured deployment set
 
 You'll need the following installed to run the template successfully:
 
-* Ruby 3.2+
+* Ruby `4.0.2` (see `.ruby-version`)
 * PostgreSQL 12+
-* Node.js 18+ and Yarn
+* Bun
 * Libvips or Imagemagick
 
 ## Create Your Repository
@@ -25,21 +25,27 @@ git push -u origin main
 
 ## Initial Setup
 
-First, configure your project name:
+First, configure your project:
 
 ```bash
 bin/rails setup:project
 ```
 
 You will be prompted to enter:
-- **Project name** (e.g., `musicforge.ai`) - will be converted to Rails-style database naming
+- **Project slug** (e.g., `musicforge`) - used for database names and Kamal service/image names
+- **Application name** (e.g., `Musicforge`)
+- **Canonical host** (e.g., `app.example.com`)
+- **Support email**
+- **Default from email**
 - **Web server IP** - leave empty to keep current settings
 
 This will automatically configure:
 - `config/database.yml` - Database names and credentials
+- `config/template_base.rb` - app name, domain, and mail defaults
 - `config/deploy.yml` - Service name, image name, servers, domain, and the
   `db` Kamal accessory (PostgreSQL 18 running on the same host, reachable by
   the app container through the `kamal` Docker network as `<prefix>-db`)
+- seed override files for the default layout and home page if they do not exist
 
 Next, create your Rails credentials file:
 
@@ -58,6 +64,8 @@ Then run `bin/setup` to install Ruby and JavaScript dependencies and setup your 
 ```bash
 bin/setup
 ```
+
+`bin/setup` checks the pinned Ruby version before installing gems so mismatched patch versions fail early with a clear message.
 
 ## Running the Application
 
@@ -139,14 +147,26 @@ bin/kamal dbc                  # Rails dbconsole (alias)
 ├── app/                    # Application code
 ├── config/
 │   ├── database.yml        # Database configuration (generated from template)
-│   └── deploy.yml          # Kamal deployment config (generated from template)
+│   ├── deploy.yml          # Kamal deployment config (generated from template)
+│   └── template_base.rb    # App-level name/domain/mail defaults
 ├── lib/
+│   ├── template_base/      # Internal template base (engine-backed defaults)
 │   ├── tasks/
 │   │   └── setup.rake      # Project setup task
 │   └── templates/
 │       ├── database.yml.tt # Database config template
-│       └── deploy.yml.tt   # Deploy config template
+│       ├── deploy.yml.tt   # Deploy config template
+│       └── template_base.rb.tt
 └── ...
+```
+
+## Customizing Base Files
+
+Default template implementations can live under `lib/template_base/app/...`.
+To customize one in your app, copy it into `app/...` first:
+
+```bash
+bin/rails generate template_base:override app/views/layouts/application.html.erb
 ```
 
 ## Merging Updates

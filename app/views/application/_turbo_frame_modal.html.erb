@@ -1,8 +1,0 @@
-<%# Top-level turbo frame container for modal rendering.
-    Pair with ApplicationHelper#modal_turbo_frame_data on trigger links:
-
-      <%= link_to "Edit", edit_thing_path(thing), data: modal_turbo_frame_data %>
-
-    Then the target controller can render its modal inside
-    `<%= turbo_frame_tag "modal_content" do %> ... <% end %>`. %>
-<%= turbo_frame_tag "modal_content" %>

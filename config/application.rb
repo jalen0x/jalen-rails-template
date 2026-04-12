@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails/all"
+require_relative "../lib/template_base"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -9,12 +10,12 @@ Bundler.require(*Rails.groups)
 module YingJalenxMe
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 8.0
+    config.load_defaults 8.1
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_lib(ignore: %w[assets generators tasks template_base templates])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -29,5 +30,8 @@ module YingJalenxMe
 
     # ViewComponent previews (rendered via Lookbook at /lookbook in development)
     config.view_component.preview_paths << Rails.root.join("test/components/previews").to_s
+
+    # Prefer app/ over the internal template base so downstream overrides win.
+    config.railties_order = [ :main_app, TemplateBase::Engine, :all ]
   end
 end

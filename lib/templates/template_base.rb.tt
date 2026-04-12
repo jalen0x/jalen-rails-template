@@ -1,0 +1,6 @@
+TemplateBase.config = TemplateBase::Configuration.new(
+  "application_name" => <%= application_name.inspect %>,
+  "domain" => <%= domain.inspect %>,
+  "support_email" => <%= support_email.inspect %>,
+  "default_from_email" => <%= default_from_email.inspect %>
+)

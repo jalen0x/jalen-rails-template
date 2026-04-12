@@ -23,12 +23,19 @@ bin/rails credentials:edit   # Edit encrypted credentials
 ### Custom Rake Tasks
 
 ```bash
-rake setup:project    # Interactive — renders config/database.yml and config/deploy.yml from lib/templates/
+rake setup:project    # Interactive — renders config/template_base.rb, config/database.yml, and config/deploy.yml
+```
+
+### Custom Generators
+
+```bash
+rails g template_base:override path/to/file  # Copy a template-base file into app/ for customization
 ```
 
 ## Architecture
 
 - **Stack**: Rails 8.1, Ruby 4.0, PostgreSQL, Solid Queue / Solid Cache / Solid Cable, Propshaft, Hotwire (Turbo + Stimulus), TailwindCSS v4 + Flowbite 4, Devise, Pundit, ViewComponent + Lookbook
+- **Template base**: Shared defaults can live in `lib/template_base/app/...`; app-level overrides in `app/...` win via `config.railties_order`
 - **JS pipeline**: Hybrid — `importmap-rails` manages Stimulus/Turbo/app code; `bun run build` bundles Flowbite (via esbuild) into `app/assets/builds/flowbite.turbo.js`, which importmap pins. Don't assume "either importmap OR jsbundling" — both are intentional.
 - **Authentication**: Devise with modular User concerns (`Users::Authenticatable`, `Users::Profile`, `Users::SoftDelete`). GitHub OmniAuth is the only OAuth provider.
 - **Authorization**: Pundit (`ApplicationPolicy` included in `ApplicationController`).
@@ -93,6 +100,10 @@ Inspired by *Sustainable Web Development with Ruby on Rails* (D. Copeland, 2025 
 ### Secrets & Config
 
 Never hardcode secrets — use `Rails.application.credentials`. To add new credential sections, edit `lib/templates/rails/credentials/credentials.yml.tt` so future `bin/rails credentials:edit` runs in fresh environments pick them up automatically. Do not commit `config/master.key`.
+
+### Template Base Overrides
+
+Default template files can ship from `lib/template_base/app/...`. When customizing one for an app, copy it into `app/...` first with `rails g template_base:override ...` instead of editing the shared base in place.
 
 ## UI Color Classes (Flowbite 4 Semantic)
 

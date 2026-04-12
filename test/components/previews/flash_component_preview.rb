@@ -13,4 +13,21 @@ class FlashComponentPreview < ViewComponent::Preview
       alert: "Please verify your email"
     }))
   end
+
+  def with_toasts
+    render(FlashComponent.new(flash: {
+      notice: "Saved draft",
+      billing_warning: {
+        message: "Your billing settings need attention.",
+        variant: :warning,
+        position: "top-right",
+        link: { text: "Open billing", url: "/" }
+      },
+      release_note: {
+        message: "A new release is ready.",
+        variant: :success,
+        dismiss_after: 5_000
+      }
+    }))
+  end
 end

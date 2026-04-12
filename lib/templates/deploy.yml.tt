@@ -1,8 +1,8 @@
 # Name of your application. Used to uniquely configure containers.
-service: <%= db_prefix %>
+service: <%= project_slug %>
 
 # Name of the container image.
-image: jalen0x/<%= db_prefix %>
+image: jalen0x/<%= project_slug %>
 
 # Deploy to these servers.
 servers:
@@ -18,7 +18,7 @@ servers:
 #
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
-  host: staging.<%= project_name %>
+  host: <%= domain %>
   ssl:
     certificate_pem: SSL_CERTIFICATE
     private_key_pem: SSL_PRIVATE_KEY
@@ -108,4 +108,3 @@ accessories:
       - db/production/init.sh:/docker-entrypoint-initdb.d/10-init.sh
     directories:
       - data:/var/lib/postgresql
-

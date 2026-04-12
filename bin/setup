@@ -12,6 +12,15 @@ FileUtils.chdir APP_ROOT do
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
 
+  expected_ruby = File.read(".ruby-version").strip
+  if RUBY_VERSION != expected_ruby
+    warn <<~MESSAGE
+      Ruby #{expected_ruby} is required, but you are running #{RUBY_VERSION}.
+      Install the pinned version (for example: `mise install ruby@#{expected_ruby}`) and retry.
+    MESSAGE
+    exit 1
+  end
+
   puts "== Installing dependencies =="
   system("bundle check") || system!("bundle install")
   system("bun install")

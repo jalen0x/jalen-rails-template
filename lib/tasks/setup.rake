@@ -1,77 +1,66 @@
-require "erb"
-
 namespace :setup do
   desc "Setup project with custom configuration"
   task :project do
-    print "Enter project name (e.g., musicforge.ai): "
-    project_name = STDIN.gets.chomp
+    print "Enter project slug (e.g., musicforge): "
+    project_slug = STDIN.gets.chomp
 
-    if project_name.strip.empty?
-      puts "Error: Project name cannot be empty"
+    if project_slug.strip.empty?
+      puts "Error: Project slug cannot be empty"
       exit 1
     end
 
-    # Rails 风格数据库命名：小写 + 下划线
-    db_prefix = project_name.downcase.gsub(/[^a-z0-9]+/, "_").gsub(/^_+|_+$/, "")
+    print "Enter application name (e.g., Musicforge): "
+    application_name = STDIN.gets.chomp
 
-    if db_prefix.empty?
-      puts "Error: Project name must contain at least one alphanumeric character"
+    if application_name.strip.empty?
+      puts "Error: Application name cannot be empty"
       exit 1
     end
+
+    print "Enter canonical host (e.g., app.example.com): "
+    domain = STDIN.gets.chomp.strip
+
+    if domain.empty?
+      puts "Error: Canonical host cannot be empty"
+      exit 1
+    end
+
+    print "Enter support email (leave empty for support@#{domain}): "
+    support_email = STDIN.gets.chomp.strip
+    support_email = "support@#{domain}" if support_email.empty?
+
+    print "Enter default from email (leave empty for #{application_name} <no-reply@#{domain}>): "
+    default_from_email = STDIN.gets.chomp.strip
+    default_from_email = "#{application_name} <no-reply@#{domain}>" if default_from_email.empty?
 
     print "Enter web server IP (leave empty to keep current): "
     web_ip = STDIN.gets.chomp.strip
     web_ip = nil if web_ip.empty?
 
-    puts "\nConfiguring project: #{project_name}"
-    puts "Database prefix: #{db_prefix}"
-    puts "Domain: staging.#{project_name}"
+    puts "\nConfiguring project slug: #{project_slug}"
+    puts "Application name: #{application_name}"
+    puts "Canonical host: #{domain}"
+    puts "Support email: #{support_email}"
+    puts "Default from email: #{default_from_email}"
     puts "Web server IP: #{web_ip || '(unchanged)'}"
     puts "Database: Kamal `db` accessory on the web server (postgres:18)"
     puts ""
 
-    # Render templates
-    render_database_config(db_prefix)
-    render_deploy_config(project_name, db_prefix, web_ip)
+    TemplateBase::ProjectSetup.new(
+      root: Rails.root,
+      project_slug:,
+      application_name:,
+      domain:,
+      support_email:,
+      default_from_email:,
+      web_ip:
+    ).run
 
     puts "\n✅ Project setup complete!"
     puts "\nNext steps:"
     puts "1. Run 'bin/setup' to install dependencies and create databases"
-    puts "2. Configure your secrets in .kamal/secrets"
-    puts "3. Deploy with 'bin/kamal deploy'"
-  end
-
-  private
-
-  def render_database_config(db_prefix)
-    template_path = Rails.root.join("lib", "templates", "database.yml.tt")
-    output_path = Rails.root.join("config", "database.yml")
-
-    unless File.exist?(template_path)
-      puts "Error: #{template_path} not found"
-      exit 1
-    end
-
-    template = File.read(template_path)
-    result = ERB.new(template, trim_mode: "-").result(binding)
-    File.write(output_path, result)
-
-    puts "✓ Updated database.yml"
-  end
-
-  def render_deploy_config(project_name, db_prefix, web_ip)
-    template_path = Rails.root.join("lib", "templates", "deploy.yml.tt")
-    output_path = Rails.root.join("config", "deploy.yml")
-
-    unless File.exist?(template_path)
-      puts "Error: #{template_path} not found"
-      exit 1
-    end
-
-    template = File.read(template_path)
-    result = ERB.new(template, trim_mode: "-").result(binding)
-    File.write(output_path, result)
-
-    puts "✓ Updated deploy.yml"
+    puts "2. Review config/template_base.rb and any seeded overrides in app/views"
+    puts "3. Configure your secrets in .kamal/secrets"
+    puts "4. Deploy with 'bin/kamal deploy'"
   end
 end
