@@ -1,4 +1,4 @@
-class Users::AuthenticateGithubService
+class Users::GithubAuthenticator
   class Result < Data.define(:authenticated, :user, :failure_reason)
     def authenticated?
       authenticated
@@ -9,7 +9,7 @@ class Users::AuthenticateGithubService
     @auth = auth
   end
 
-  def authenticate_user
+  def authenticate
     existing_user = User.find_by(provider: provider, uid: uid)
     return Result.new(authenticated: true, user: existing_user, failure_reason: nil) if existing_user.present?
 

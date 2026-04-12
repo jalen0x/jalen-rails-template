@@ -1,9 +1,9 @@
 require "test_helper"
 
-class Users::AuthenticateGithubServiceTest < ActiveSupport::TestCase
+class Users::GithubAuthenticatorTest < ActiveSupport::TestCase
   test "authenticates an existing github user" do
     user = users(:github_connected)
-    result = Users::AuthenticateGithubService.new(auth: github_auth(uid: user.uid, email: user.email)).authenticate_user
+    result = Users::GithubAuthenticator.new(auth: github_auth(uid: user.uid, email: user.email)).authenticate
 
     assert result.authenticated?
     assert_equal user, result.user
@@ -12,7 +12,7 @@ class Users::AuthenticateGithubServiceTest < ActiveSupport::TestCase
 
   test "links an existing email user" do
     user = users(:existing_email)
-    result = Users::AuthenticateGithubService.new(auth: github_auth(email: user.email, uid: "new-github-uid")).authenticate_user
+    result = Users::GithubAuthenticator.new(auth: github_auth(email: user.email, uid: "new-github-uid")).authenticate
 
     assert result.authenticated?
     assert_equal user, result.user
@@ -22,7 +22,7 @@ class Users::AuthenticateGithubServiceTest < ActiveSupport::TestCase
 
   test "creates a new user when email is not yet registered" do
     assert_difference("User.count", 1) do
-      result = Users::AuthenticateGithubService.new(auth: github_auth(email: "new@example.com", uid: "fresh-uid", name: "New Person")).authenticate_user
+      result = Users::GithubAuthenticator.new(auth: github_auth(email: "new@example.com", uid: "fresh-uid", name: "New Person")).authenticate
 
       assert result.authenticated?
       assert_equal "new@example.com", result.user.email
@@ -34,7 +34,7 @@ class Users::AuthenticateGithubServiceTest < ActiveSupport::TestCase
   end
 
   test "fails when github does not provide an email" do
-    result = Users::AuthenticateGithubService.new(auth: github_auth(email: nil, uid: "missing-email-uid")).authenticate_user
+    result = Users::GithubAuthenticator.new(auth: github_auth(email: nil, uid: "missing-email-uid")).authenticate
 
     refute result.authenticated?
     assert_nil result.user

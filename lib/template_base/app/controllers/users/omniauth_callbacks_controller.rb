@@ -1,6 +1,6 @@
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def github
-    result = Users::AuthenticateGithubService.new(auth: request.env["omniauth.auth"]).authenticate_user
+    result = Users::GithubAuthenticator.new(auth: request.env["omniauth.auth"]).authenticate
 
     if result.authenticated?
       flash[:github_success] = {
