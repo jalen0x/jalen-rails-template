@@ -16,9 +16,13 @@ CI.run do
 
   # Set a green GitHub commit status to unblock PR merge.
   # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.
-  if success? && system("which gh > /dev/null 2>&1") && system("gh extension list 2>/dev/null | grep -q signoff")
+  has_signoff = system("which gh > /dev/null 2>&1") && system("gh extension list 2>/dev/null | grep -q signoff")
+
+  if success? && has_signoff
     step "Signoff: All systems go. Ready for merge and deploy.", "gh signoff"
-  elsif !success?
+  elsif success?
+    puts "\n⚠️  Skipping signoff — install with: gh extension install basecamp/gh-signoff"
+  else
     failure "Signoff: CI failed. Do not merge or deploy.", "Fix the issues and try again."
   end
 end
