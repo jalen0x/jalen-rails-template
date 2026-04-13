@@ -60,7 +60,7 @@ gem "discard", "~> 1.4"
 gem "prefixed_ids", "~> 1.2"
 
 # User experience
-gem "pagy", "~> 43.0"
+gem "pagy", "~> 43.5"
 gem "noticed", "~> 3.0"
 gem "local_time", "~> 3.0"
 gem "name_of_person", "~> 1.0"
