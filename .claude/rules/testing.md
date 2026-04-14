@@ -5,7 +5,7 @@ paths:
 
 # Testing Standards (Minitest)
 
-- Use fixtures for test data.
+- Use fixtures for test data. See "Fixtures Best Practices" below.
 - Use block syntax: `test "valid user can login" do`.
 - Use `setup` / `teardown` for common code.
 - Test both happy and sad paths + edge cases.
@@ -79,7 +79,7 @@ post widgets_path, params: { widget: { active: "false" } }  # correct
 
 ## Fixtures Best Practices
 
-This project uses Rails built-in fixtures (not FactoryBot). Follow the DHH / 37signals style:
+Use Rails built-in fixtures, following the DHH / 37signals style:
 
 - **Keep 1–2 base fixtures per model**, named descriptively (`:admin`, `:regular_user`). Avoid explosive growth.
 - **Use YAML anchors to DRY common attributes**:
