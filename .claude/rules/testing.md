@@ -66,11 +66,19 @@ assert_equal 12345, widget.reload.price_cents  # the real assertion
 
 ## Controller Tests
 
-- **Parameters must be strings.** Production HTTP parameters are always strings. Passing `active: false` passes in tests but `"false"` is truthy in production — it will break.
+Match test parameters to the real wire format:
 
-```ruby
-post widgets_path, params: { widget: { active: "false" } }  # correct
-```
+- **Form/query params (non-JSON)** — use strings. Browser form submissions are text; passing `active: false` works in tests but `"false"` is truthy in production.
+
+  ```ruby
+  post widgets_path, params: { widget: { active: "false" } }
+  ```
+
+- **`as: :json` requests** — use native JSON types. Rails encodes params as JSON with proper headers, matching real API clients.
+
+  ```ruby
+  post api_widgets_path, params: { widget: { active: false, count: 42 } }, as: :json
+  ```
 
 ## Service Tests
 
