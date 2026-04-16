@@ -5,63 +5,57 @@ paths:
 
 # Service Object Standards
 
-- Name: verb + noun + "Service" (e.g. `CreateUserService`).
-- Use `class Service::ClassName` form, not nested module/class.
-- Accept params in `initialize`, execute in `run` (or `call` / `perform`).
-- Keep focused on a single responsibility.
-- Wrap multi-step operations in `ActiveRecord::Base.transaction`.
-- Handle errors via exceptions or a result object.
-- Validate parameters in `initialize` or a dedicated method.
-- Calls should read like English: `FetchService.fetch(feed)` — not `FetchService.new(feed:).run`.
-- Define Result objects inside the service class to clarify return fields.
-- **Don't extract a service that just delegates** without business logic — inline is better than a wrapper.
-- Concerns (`app/controllers/concerns/`, `app/models/concerns/`) don't belong in `app/services/`.
+Services are the business-logic layer. First principle: a call site should read like a business sentence, not a framework invocation.
 
-## Rich Result Objects (Not Booleans / nil)
+## Naming
 
-Service methods should return an instance of a `Result` class nested inside the service, not true/false / model / nil.
+- **Classes are business nouns**: `WidgetCreator`, `LegacyWidgets`, `ClaudeMessageTokenCounter`, `ClaudeModelCatalog`.
+- **No `Service` suffix** — it adds a layer label, not meaning. Drop it.
+- **Methods are verbs**: `create_widget(params)`, `count_tokens(messages:)`, `change_to_95_cents`.
+- **No generic `run` / `call` / `perform`** — they erase intent and block private-method decomposition.
+- Sub-namespaces only for real grouping (`OneOff::`, `Admin::`).
 
 ```ruby
-class WidgetsCreator
-  def create_widget(widget_params)
-    widget = Widget.create(widget_params)
+# Good — reads like a sentence
+ClaudeMessageTokenCounter.new.count_tokens(messages:)
+LegacyWidgets.new.change_approved_widgets_to_legacy
+
+# Bad — framework noise
+CountClaudeMessageTokensService.new.run
+```
+
+## Return Values
+
+When a method needs to return more than one thing, use a nested `Result` class.
+
+```ruby
+class WidgetCreator
+  def create_widget(params)
+    widget = Widget.create(params)
     Result.new(created: widget.valid?, widget: widget)
   end
 
   class Result
     attr_reader :widget
-    def initialize(created:, widget:)
-      @created = created
-      @widget = widget
-    end
+    def initialize(created:, widget:) = (@created, @widget = created, widget)
     def created? = @created
   end
 end
 ```
 
-Rules:
-- **Past-tense predicates**: `created?` / `charged?` / `published?`, not `success?` / `ok?`. When the UI later needs to distinguish `created? && pending_review?`, only the Result class changes.
-- Each service defines **its own** Result class, inline — no shared Result gem. Ruby 3.2+ `Data.define` is equivalent to a hand-written class.
-- When no return value is needed, don't return one (e.g. a pure side-effect method like `notify_finance_team`).
+- **Fields are business nouns**: `widget:`, `models:`, `token_count:` — not generic `payload:` / `data:` / `result:`.
+- **Past-tense predicates**: `created?` / `charged?` / `published?` — not `success?` / `ok?`. Future UI needs (`created? && pending_review?`) then only touch the Result class.
+- Pure side-effect methods return nothing.
 
-## Naming: Verb Method Names, Never `call`
+## Don't Over-Decompose
 
-- Classes are **nouns**: `WidgetsCreator`, `PromotionalWidgetsCreator` — not `WidgetService`.
-- Methods are **verbs**: `create_widget(widget_params)`, not `call`. `call` looks identical across all services, grep can't distinguish intent, and a single-method class can't use private methods for decomposition.
-- Invocations read like English: `WidgetsCreator.new.create_widget(params)`.
+- Don't wrap a single delegation in a service — inline it.
+- Don't create single-use helper classes (`SomethingFinder` called once) — make it a private method.
+- Don't inject dependencies just for testability. `allow(Widget).to receive(:create)` works directly. Constructor takes only what the caller must configure.
 
-## Against Full Dependency Injection
+## Other
 
-Don't inject every dependency via `initialize` for "testability":
-
-```ruby
-# Don't
-def initialize(notifier:, sales_tax_api:, repository:)
-
-# Good
-def initialize(notifier:)  # only inject what the caller truly needs to configure
-```
-
-Ruby's mocking can `allow(Widget).to receive(:create)` directly — no DI needed for testing. Full DI makes code appear more flexible than it actually is, obscuring real dependencies.
-
-The constructor accepts only dependencies **the caller must configure**; everything else (`Widget`, `AdminMailer`, `Stripe::`) is a hard dependency.
+- Params in `initialize`, work in the verb method.
+- Wrap multi-step DB work in `ActiveRecord::Base.transaction`.
+- External API calls (HTTP, SSH, third-party SDK) stay **outside** transactions and belong in a Solid Queue job — see `async-external-calls.md`.
+- Never swallow exceptions silently.
