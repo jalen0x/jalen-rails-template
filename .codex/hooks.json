@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -lc 'root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); CLAUDE_PROJECT_DIR=\"$root\" exec \"$root/.claude/hooks/pre_tool_use.rb\"'",
+            "statusMessage": "Pre-flight check..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -lc 'root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); CLAUDE_PROJECT_DIR=\"$root\" exec \"$root/.claude/hooks/post_tool_use.rb\"'",
+            "statusMessage": "Auto-formatting..."
+          }
+        ]
+      }
+    ]
+  }
+}
