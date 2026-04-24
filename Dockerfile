@@ -2,8 +2,8 @@
 # check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t ying_jalenx_me .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name ying_jalenx_me ying_jalenx_me
+# docker build -t jalen_rails_template .
+# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name jalen_rails_template jalen_rails_template
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 

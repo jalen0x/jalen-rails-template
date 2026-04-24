@@ -21,6 +21,8 @@ module TemplateBase
       render_template("database.yml.tt", root.join("config", "database.yml"))
       render_template("deploy.yml.tt", root.join("config", "deploy.yml"))
       render_template("template_base.rb.tt", root.join("config", "template_base.rb"))
+      rewrite_application_module
+      rewrite_dockerfile_image
       seed_override("app/views/layouts/application.html.erb")
       seed_override("app/views/home/show.html.erb")
     end
@@ -29,6 +31,28 @@ module TemplateBase
 
     def db_prefix
       project_slug
+    end
+
+    def module_name
+      project_slug.split("_").map(&:capitalize).join
+    end
+
+    def rewrite_application_module
+      path = root.join("config", "application.rb")
+      return unless path.exist?
+
+      content = path.read
+      updated = content.sub(/^module [A-Z]\w*$/, "module #{module_name}")
+      path.write(updated) if updated != content
+    end
+
+    def rewrite_dockerfile_image
+      path = root.join("Dockerfile")
+      return unless path.exist?
+
+      content = path.read
+      updated = content.gsub("jalen_rails_template", project_slug)
+      path.write(updated) if updated != content
     end
 
     def sanitize_slug(value)

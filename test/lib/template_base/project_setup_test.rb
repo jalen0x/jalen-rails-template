@@ -4,6 +4,10 @@ require "tmpdir"
 class TemplateBase::ProjectSetupTest < ActiveSupport::TestCase
   test "renders configuration files and seeds overrides" do
     Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, "config"))
+      File.write(File.join(dir, "config", "application.rb"), "module JalenRailsTemplate\nend\n")
+      File.write(File.join(dir, "Dockerfile"), "# docker build -t jalen_rails_template .\n")
+
       setup = TemplateBase::ProjectSetup.new(
         root: dir,
         project_slug: "starter_app",
@@ -19,6 +23,8 @@ class TemplateBase::ProjectSetupTest < ActiveSupport::TestCase
       assert_includes File.read(File.join(dir, "config", "database.yml")), "starter_app_development"
       assert_includes File.read(File.join(dir, "config", "deploy.yml")), "host: app.example.test"
       assert_includes File.read(File.join(dir, "config", "template_base.rb")), '"application_name" => "Starter App"'
+      assert_includes File.read(File.join(dir, "config", "application.rb")), "module StarterApp"
+      assert_includes File.read(File.join(dir, "Dockerfile")), "docker build -t starter_app ."
       assert File.exist?(File.join(dir, "app", "views", "layouts", "application.html.erb"))
       assert File.exist?(File.join(dir, "app", "views", "home", "show.html.erb"))
     end
