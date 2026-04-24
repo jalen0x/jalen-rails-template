@@ -1,4 +1,2 @@
-hooks = "./hooks.json"
-
 [features]
 codex_hooks = true
