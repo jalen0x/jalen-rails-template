@@ -7,7 +7,7 @@ Welcome! This is a Rails application template with pre-configured deployment set
 You'll need the following installed to run the template successfully:
 
 * Ruby `4.0.2` (see `.ruby-version`)
-* PostgreSQL 12+
+* PostgreSQL 19+
 * Bun
 * Libvips or Imagemagick
 
@@ -43,7 +43,7 @@ This will automatically configure:
 - `config/database.yml` - Database names and credentials
 - `config/template_base.rb` - app name, domain, and mail defaults
 - `config/deploy.yml` - Service name, image name, servers, domain, and the
-  `db` Kamal accessory (PostgreSQL 18 running on the same host, reachable by
+  `db` Kamal accessory (PostgreSQL 19 running on the same host, reachable by
   the app container through the `kamal` Docker network as `<prefix>-db`)
 - seed override files for the default layout and home page if they do not exist
 
