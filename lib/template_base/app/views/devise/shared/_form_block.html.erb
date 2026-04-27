@@ -1,0 +1,17 @@
+<% if turbo_frame_request? %>
+  <%= turbo_frame_tag "modal_content" do %>
+    <%= render(ModalComponent.new(size: :lg, body_class: "text-body")) do %>
+      <div class="p-6 space-y-4 sm:p-8">
+        <%= yield :form_block %>
+      </div>
+    <% end %>
+  <% end %>
+<% else %>
+  <div class="max-w-screen-xl px-4 mx-auto my-10">
+    <div class="mx-auto w-full bg-neutral-primary-soft rounded-base shadow md:mt-0 sm:max-w-lg xl:p-0">
+      <div class="p-6 space-y-4 sm:p-8">
+        <%= yield :form_block %>
+      </div>
+    </div>
+  </div>
+<% end %>

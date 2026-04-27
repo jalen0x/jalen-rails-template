@@ -1,7 +1,5 @@
 module ApplicationHelper
-  # Returns data attributes for turbo frame modal.
-  # Inside a modal (turbo frame request), returns { turbo_frame: "modal_content" }
-  # so links stay within the modal. On full pages, returns {} for normal navigation.
+  # Returns data attributes for links/forms that should stay inside an open modal.
   def modal_turbo_frame_data
     turbo_frame_request? ? { turbo_frame: "modal_content" } : {}
   end

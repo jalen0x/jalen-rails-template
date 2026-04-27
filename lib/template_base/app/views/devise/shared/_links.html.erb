@@ -1,0 +1,5 @@
+<div class="space-y-2 text-sm">
+  <%- if devise_mapping.recoverable? && controller_name != "passwords" && controller_name != "registrations" && controller_name != "sessions" %>
+    <%= link_to t(".forgot_your_password"), new_password_path(resource_name), data: modal_turbo_frame_data, class: "block font-medium text-fg-brand hover:underline" %>
+  <% end -%>
+</div>

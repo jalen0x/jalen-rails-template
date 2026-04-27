@@ -1,4 +1,10 @@
 en:
+  components:
+    modal:
+      close: "Close modal"
+  oauth:
+    github: "GitHub"
+    sign_in_with: "Sign in with %{provider}"
   users:
     omniauth_callbacks:
       failure: "We could not sign you in with GitHub right now."

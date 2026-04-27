@@ -31,8 +31,8 @@
             <span class="hidden text-body-subtle sm:inline"><%= current_user.name.presence || current_user.email %></span>
             <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
           <% else %>
-            <%= link_to "Sign in", new_user_session_path, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-            <%= link_to "Create account", new_user_registration_path, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            <%= link_to "Sign in", new_user_session_path, data: { turbo_frame: "modal_content" }, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            <%= link_to "Create account", new_user_registration_path, data: { turbo_frame: "modal_content" }, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
           <% end %>
         </nav>
       </div>

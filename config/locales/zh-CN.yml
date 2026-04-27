@@ -1,0 +1,43 @@
+zh-CN:
+  components:
+    modal:
+      close: "关闭弹窗"
+  devise:
+    passwords:
+      new:
+        description: "输入邮箱后，我们会发送重置密码说明。"
+        heading: "忘记密码？"
+        send_instructions: "发送重置说明"
+        sending: "发送中..."
+        title: "忘记密码？"
+    registrations:
+      new:
+        login_html: "或者%{link}"
+        login_link: "登录已有账号"
+        sign_up: "注册"
+        submitting: "提交中..."
+        title: "注册"
+    sessions:
+      new:
+        sign_in: "登录"
+        sign_up_html: "或者%{link}"
+        sign_up_link: "注册一个账号"
+        signing_in: "登录中..."
+        title: "登录"
+    shared:
+      or: "或"
+      links:
+        forgot_your_password: "忘记密码？"
+        redirecting: "跳转中..."
+        sign_in: "登录"
+      minimum_password_length:
+        one: "至少 %{count} 个字符"
+        other: "至少 %{count} 个字符"
+  errors:
+    messages:
+      not_saved:
+        one: "有 1 个错误导致无法保存%{resource}："
+        other: "有 %{count} 个错误导致无法保存%{resource}："
+  oauth:
+    github: "GitHub"
+    sign_in_with: "使用 %{provider} 登录"

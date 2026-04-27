@@ -1,0 +1,60 @@
+<% content_for(:title) { t(".title") } %>
+<% @hide_flash_alert = true %>
+
+<% content_for :form_block do %>
+  <div class="mb-6 text-center">
+    <h2 class="mb-1 text-2xl font-bold leading-tight text-heading"><%= t(".sign_in") %></h2>
+    <p class="text-sm text-body-subtle">
+      <%= t(".sign_up_html", link: link_to(t(".sign_up_link"), new_registration_path(resource_name), data: modal_turbo_frame_data, class: "font-medium text-fg-brand hover:underline")) %>
+    </p>
+  </div>
+
+  <%= render "devise/shared/oauth_buttons" %>
+
+  <%= form_with(model: resource, as: resource_name, url: session_path(resource_name), data: modal_turbo_frame_data) do |f| %>
+    <div class="mb-6">
+      <%= f.label :email, class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= f.email_field :email,
+            autofocus: true,
+            autocomplete: "email",
+            placeholder: true,
+            required: true,
+            class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+    </div>
+
+    <div class="mb-6">
+      <%= f.label :password, class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= f.password_field :password,
+            autocomplete: "current-password",
+            placeholder: true,
+            required: true,
+            class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      <% if flash[:alert].present? %>
+        <p class="mt-2 text-sm text-fg-danger"><%= flash[:alert] %></p>
+      <% end %>
+    </div>
+
+    <% if devise_mapping.rememberable? -%>
+      <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-start">
+          <div class="flex h-5 items-center">
+            <%= f.check_box :remember_me, class: "h-4 w-4 rounded border border-default-medium bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft" %>
+          </div>
+          <div class="ms-2 text-sm">
+            <%= f.label :remember_me, class: "font-medium text-heading" %>
+          </div>
+        </div>
+
+        <%- if devise_mapping.recoverable? %>
+          <%= link_to t("devise.shared.links.forgot_your_password"), new_password_path(resource_name), data: modal_turbo_frame_data, class: "text-sm font-medium text-fg-brand hover:underline" %>
+        <% end -%>
+      </div>
+    <% end -%>
+
+    <%= f.button button_text(t(".sign_in"), disable_with: t(".signing_in")), class: "w-full text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 text-center" %>
+  <% end %>
+
+  <%= render "devise/shared/links" %>
+<% end %>
+
+<%= render "devise/shared/form_block" %>

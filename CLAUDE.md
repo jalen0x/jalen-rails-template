@@ -146,13 +146,23 @@ Prefer the existing `ButtonComponent` / `FormField::InputComponent` / `FormField
 
 ## Turbo Frame Modal Rules
 
-Pages that serve as both a full page and a modal must only wrap themselves in `turbo_frame_tag "modal_content"` when `turbo_frame_request?` is true. On the link/form that opens the modal, use the `modal_turbo_frame_data` helper — never hardcode `data: { turbo_frame: "modal_content" }`.
+Pages that serve as both a full page and a modal use a single `modal_content` Turbo Frame, toggled by `turbo_frame_request?`.
+
+On the triggering link from a normal page, target the shared modal frame directly:
 
 ```erb
-<%= link_to "Edit", edit_thing_path(thing), data: modal_turbo_frame_data %>
+<%= link_to "Edit", edit_thing_path(thing), data: { turbo_frame: "modal_content" } %>
 ```
 
-The layout renders a top-level `<turbo-frame id="modal_content">` — don't nest a second one.
+The target view must only wrap itself in `turbo_frame_tag "modal_content"` when `turbo_frame_request?` is true, so direct URL access still renders the full page.
+
+For links/forms inside the modal that should stay in the modal, use the context-aware `modal_turbo_frame_data` helper:
+
+```erb
+<%= link_to "Sign up", new_registration_path(resource_name), data: modal_turbo_frame_data %>
+```
+
+It returns `{ turbo_frame: "modal_content" }` in a modal and `{}` on a full page. Do not hardcode `data: { turbo_frame: "modal_content" }` for in-modal links, because that breaks the standalone-page path.
 
 ## Compact Instructions
 
