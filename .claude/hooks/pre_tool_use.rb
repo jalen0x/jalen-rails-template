@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# PreToolUse hook — runs BEFORE Edit/Write/Bash land on disk.
+# PreToolUse hook — runs BEFORE Edit/Write/apply_patch/Bash land on disk.
 #
 # Guards:
 #   - Protected paths (lib/template_base/, credentials, schema, builds)
@@ -166,6 +166,45 @@ def override_comment_issue(path, content)
 end
 
 
+# Extract class names from `discard_on`, ignoring keyword args and surrounding
+# parens. `Net::ReadTimeout` must not be confused with a `name:` keyword.
+def discard_on_exceptions(line)
+  content = line.sub(/\A\s*discard_on\s*/, "").strip
+  args = if content.start_with?("(") && content.end_with?(")")
+    content[1...-1].strip
+  else
+    content
+  end
+
+  tokens = []
+  buffer = +""
+  depth = 0
+
+  args.each_char do |char|
+    case char
+    when "(", "[", "{"
+      depth += 1
+      buffer << char
+    when ")", "]", "}"
+      depth -= 1
+      buffer << char
+    when ","
+      if depth.zero?
+        tokens << buffer.strip
+        buffer = +""
+      else
+        buffer << char
+      end
+    else
+      buffer << char
+    end
+  end
+  tokens << buffer.strip
+
+  tokens.reject(&:empty?).reject { |token| token.match?(/\A\w+:(?!:)/) }
+end
+
+
 def policy_issues(path, content)
   issues = []
 
@@ -179,10 +218,7 @@ def policy_issues(path, content)
     has_bad_discard = joined.lines.any? do |line|
       next false unless line.match?(/\bdiscard_on\b/)
       next false if line.match?(/^\s*#/)  # skip comments
-      args = line.sub(/^\s*discard_on\s+/, "").strip
-      # Remove keyword arguments (if:, unless:, report:, wait:, etc.)
-      args = args.gsub(/\b\w+:\s*\S+/, "").gsub(/\b\w+:\s*$/, "")
-      exceptions = args.split(",").map(&:strip).reject(&:empty?)
+      exceptions = discard_on_exceptions(line)
       (exceptions - allowed_discard).any?
     end
     issues << "`discard_on` is forbidden for Solid Queue jobs, except for `ActiveRecord::RecordNotFound` and `ActiveJob::DeserializationError`. Let other jobs fail so retries and debugging still work." if has_bad_discard
@@ -195,13 +231,20 @@ def policy_issues(path, content)
 
     # ml/mr/pl/pr/text-left/text-right — always flagged
     physical = content.scan(PHYSICAL_MARGIN_PADDING_PATTERN)
-    # left-*/right-* — only flagged when no fixed/absolute in surrounding context
-    # (check 3-line window to handle multiline class attributes)
+    # left-*/right-* — only flagged when no fixed/absolute in the current HTML
+    # element. Walk upward to the opening tag, with a small fallback window.
     lines = content.lines
     lines.each_with_index do |line, i|
-      start_idx = [ i - 1, 0 ].max
-      end_idx = [ i + 1, lines.size - 1 ].min
+      next unless line.match?(PHYSICAL_POSITION_PATTERN)
+
+      start_idx = i
+      start_idx -= 1 while start_idx > 0 && !lines[start_idx].match?(/<\w/)
+      start_idx = [ i - 5, 0 ].max unless lines[start_idx].match?(/<\w/)
+      end_idx = i
+      end_idx += 1 while end_idx < lines.size - 1 && !lines[end_idx].include?(">")
+      end_idx = [ end_idx, i + 5, lines.size - 1 ].min
       next if (start_idx..end_idx).any? { |j| lines[j].match?(/\b(?:fixed|absolute)\b/) }
+
       physical.concat(line.scan(PHYSICAL_POSITION_PATTERN))
     end
     physical = physical.uniq.first(5)
@@ -209,7 +252,7 @@ def policy_issues(path, content)
 
     dark_colors = content.scan(DARK_HARDCODED_COLOR_PATTERN).uniq.first(5)
     issues << "Avoid `dark:` with hardcoded palette colors. Use Flowbite semantic variables: #{dark_colors.join(', ')}." if dark_colors.any?
-    issues << "Use `h-dvh` instead of `h-screen` to avoid mobile browser viewport bugs." if content.match?(/\bh-screen\b/)
+    issues << "Use `h-dvh` instead of `h-screen` to avoid mobile browser viewport bugs." if content.match?(/(?<![-\w])h-screen\b/)
   end
 
   destroy_issue = soft_delete_issue(path, content)
@@ -239,6 +282,125 @@ def simulate_content(path, input, tool_name)
 end
 
 
+def apply_patch_section_header?(line)
+  line.start_with?("*** Add File:", "*** Update File:", "*** Delete File:", "*** End Patch")
+end
+
+
+def parse_apply_patch_changes(command)
+  lines = command.lines(chomp: true)
+  return [] unless lines.first == "*** Begin Patch"
+
+  changes = []
+  index = 1
+
+  while index < lines.length
+    line = lines[index]
+
+    case line
+    when /\A\*\*\* Add File: (.+)\z/
+      path = Regexp.last_match(1)
+      index += 1
+      content = []
+
+      while index < lines.length && !apply_patch_section_header?(lines[index])
+        content << lines[index].delete_prefix("+") if lines[index].start_with?("+")
+        index += 1
+      end
+
+      changes << { type: :add, path: path, content: content.join("\n") + (content.empty? ? "" : "\n") }
+    when /\A\*\*\* Update File: (.+)\z/
+      path = Regexp.last_match(1)
+      index += 1
+      move_path = nil
+      patch_lines = []
+
+      while index < lines.length && !apply_patch_section_header?(lines[index])
+        case lines[index]
+        when /\A\*\*\* Move to: (.+)\z/
+          move_path = Regexp.last_match(1)
+        when /\A[ +-]/
+          patch_lines << lines[index]
+        end
+
+        index += 1
+      end
+
+      changes << { type: :update, path: path, move_path: move_path, patch_lines: patch_lines }
+    when /\A\*\*\* Delete File: (.+)\z/
+      changes << { type: :delete, path: Regexp.last_match(1) }
+      index += 1
+    else
+      index += 1
+    end
+  end
+
+  changes
+end
+
+
+def apply_patch_paths(change)
+  [ change[:path], change[:move_path] ].compact
+end
+
+
+def apply_patch_target_path(change)
+  change[:move_path] || change[:path]
+end
+
+
+def apply_patch_updated_content(current, patch_lines)
+  source = current.lines(chomp: true)
+  output = []
+  source_index = 0
+
+  patch_lines.each do |line|
+    marker = line[0]
+    text = line[1..].to_s
+
+    case marker
+    when " "
+      next_index = source[source_index..]&.index(text)
+      if next_index
+        match_index = source_index + next_index
+        output.concat(source[source_index...match_index])
+        output << source[match_index]
+        source_index = match_index + 1
+      else
+        output << text
+      end
+    when "-"
+      next_index = source[source_index..]&.index(text)
+      if next_index
+        match_index = source_index + next_index
+        output.concat(source[source_index...match_index])
+        source_index = match_index + 1
+      end
+    when "+"
+      output << text
+    end
+  end
+
+  output.concat(source[source_index..] || [])
+  content = output.join("\n")
+  content += "\n" if current.end_with?("\n")
+  content
+end
+
+
+def simulate_apply_patch_content(change)
+  case change[:type]
+  when :add
+    change[:content]
+  when :update
+    absolute_path = File.expand_path(change[:path], PROJECT_DIR)
+    return nil unless File.file?(absolute_path)
+
+    apply_patch_updated_content(File.read(absolute_path), change[:patch_lines])
+  end
+end
+
+
 payload = parse_payload
 exit 0 unless payload
 
@@ -257,6 +419,31 @@ when "Edit", "Write"
     if content
       issues = policy_issues(path, content)
       block("Policy violation in `#{path}`:\n#{issues.map { |i| "- #{i}" }.join("\n")}") if issues.any?
+    end
+  end
+when "apply_patch"
+  parse_apply_patch_changes(input["command"].to_s).each do |change|
+    apply_patch_paths(change).each do |raw_path|
+      path = relative_path(raw_path)
+      next if path.nil?
+
+      reason = protected_edit_reason(path)
+      if reason
+        block(reason)
+        exit 0
+      end
+    end
+
+    path = relative_path(apply_patch_target_path(change))
+    next if path.nil? || ignored_path?(path)
+
+    content = simulate_apply_patch_content(change)
+    next unless content
+
+    issues = policy_issues(path, content)
+    if issues.any?
+      block("Policy violation in `#{path}`:\n#{issues.map { |i| "- #{i}" }.join("\n")}")
+      exit 0
     end
   end
 when "Bash"
