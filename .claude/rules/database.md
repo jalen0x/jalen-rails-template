@@ -87,6 +87,18 @@ t.references :widget_status, null: false, foreign_key: true, index: true
 
 Hardcoded boolean states (`active` / `deleted_at`) or simple two-way choices that will never expand can use `enum`.
 
+## Data Is Not Executable Code
+
+- Do not store Ruby, JavaScript, proc/lambda bodies, or executable response handlers in tables for later execution.
+- Store symbolic keys or structured config, then map them to approved adapter classes in code.
+- If user-authored behavior is unavoidable, design a bounded DSL/JSON schema and document sandboxing, permissions, timeouts, audit logs, and allowed network/data access before adding the column.
+
+## Capability and Configuration State
+
+- Choose one owner for capability/configuration facts before adding columns or tables.
+- Avoid storing the same fact in two competing shapes, such as per-step booleans plus experiment-level JSON rows, unless one is derived and the write path makes that obvious.
+- Add one public reader for the rest of the app (`enabled_for?(experiment, step, :ai)`) so callers do not guess which table/JSON field wins.
+
 ## Migration Workflow
 
 Write iteratively:

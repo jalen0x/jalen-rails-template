@@ -26,6 +26,23 @@ Any call that leaves the Ruby process: SSH, HTTP API, SMTP, DNS, gateway RPC, th
 - Webhook signature verification — must run before processing.
 - OAuth token validation — single fast call that gates the request.
 
+## LLM and Streaming Calls
+
+LLM APIs are external calls, even when the UI wants token streaming. Default to a background job that persists status/output and broadcasts progress through Turbo Streams or Action Cable.
+
+Inline request-path streaming is an explicit product exception, not the default. If you keep it inline, document the exception and implement all of these boundaries:
+
+- short client/open/read timeouts;
+- user cancellation behavior;
+- retry or no-retry semantics;
+- partial-output persistence or discard rules;
+- user-visible error state;
+- monitoring/error reporting;
+- rate limiting and concurrency limits;
+- no open database transaction during the stream.
+
+Keep provider-specific streaming code behind a small adapter so controllers do not become SDK orchestration code.
+
 ## Pattern: Controller → Job → Turbo Broadcast
 
 ```
@@ -95,13 +112,7 @@ Enqueuing jobs from callbacks is a Rails Core–endorsed pattern (DHH: "all jobs
 
 These callbacks run inside the DB transaction. The worker may execute the job before the record commits → `RecordNotFound`.
 
-On Rails 8.1, enable protection manually in `ApplicationJob`:
-
-```ruby
-self.enqueue_after_transaction_commit = true
-```
-
-This becomes the default in Rails 8.2. Once enabled, `perform_later` inside transaction callbacks is automatically deferred until after commit.
+Use `after_commit` when a callback must enqueue a secondary responsibility after durable state changes.
 
 ### `after_commit` callbacks are appropriate for secondary responsibilities
 
@@ -124,7 +135,7 @@ These are orthogonal concerns — declaratively plugged in, not affecting core l
 
 ### Code review signals for callback enqueuing
 
-- `after_create` / `after_save` + `perform_later` / `deliver_later` → confirm `enqueue_after_transaction_commit` is enabled; otherwise require `after_commit`
+- `after_create` / `after_save` + `perform_later` / `deliver_later` → require `after_commit`
 - `after_commit` + simple enqueue → OK (secondary responsibility)
 - `after_commit` + complex business logic → suggest moving to Service layer
 

@@ -191,6 +191,7 @@ When compressing context, preserve in priority order:
 Detailed guides are in `.claude/rules/` (auto-loaded by file path glob):
 
 - `api.md` — API endpoint architecture, auth, and JSON conventions
+- `architecture-design-docs.md` — design-doc rules for executable-code seams, LLM streaming, config, and capability state
 - `architecture-evolution.md` — monolith/shared DB/microservices decision rules
 - `async-external-calls.md` — Controller → Job → Turbo broadcast pattern for external I/O
 - `authorization.md` — Devise, Pundit, role modeling, and access-control testing

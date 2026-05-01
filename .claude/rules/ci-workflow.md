@@ -35,6 +35,12 @@ Automation beats documentation. `bin/setup`, `bin/dev`, and `bin/ci` are the liv
 - Do not disable tests because the suite is slow. Split checks into parallel scripts (`bin/unit-tests`, `bin/system-tests`, `bin/security-audits`) if needed.
 - The CI entrypoint should run `bin/setup`, then `bin/setup` again to verify idempotency, then the remaining `bin/ci` checks. This can live inside `bin/ci` so local and hosted CI use the same path.
 
+## Package Manager Consistency
+
+- The lockfile chooses the JavaScript package manager. `bun.lock` means CI, Docker, `bin/setup`, and `bin/dev` use Bun.
+- Do not mix Yarn/npm install steps or caches into a Bun project unless the repo intentionally carries the matching lockfile and scripts.
+- Hosted CI should exercise the same commands as local development. If the workflow adds explicit install/build steps for caching or artifacts, they must match the `bin/` scripts.
+
 ## Documentation Rule
 
 If a README/runbook says "run these steps," prefer turning those steps into a `bin/` script or Rake task. Humans copy the wrong IDs and skip steps under pressure; automation does not.

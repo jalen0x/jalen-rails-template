@@ -54,6 +54,22 @@ Use `ENV.fetch("NAME")` for required values so boot fails loudly when config is 
 - Do not use `bin/rails credentials:edit` for app configuration.
 - Do not commit `config/master.key`, `config/credentials/*.key`, `config/credentials.yml.enc`, `config/credentials/*.yml.enc`, or raw secret values.
 - If an existing upstream file suggests credentials, convert the setting to ENV instead of adding a credentials fallback.
+- Delete credentials templates and generated credentials files instead of leaving inactive fallback paths behind.
+
+### Credentials Review Checklist
+
+When migrating or reviewing another project, search code, config, templates, and docs for credentials usage:
+
+```bash
+rg "Rails\\.application\\.credentials|credentials\\.dig|credentials:edit|credentials:show|RAILS_MASTER_KEY" config app lib docs .github .kamal
+```
+
+Production config must have one explicit source of truth:
+
+- `config/storage.yml` reads storage secrets from ENV.
+- `config/database.yml` reads DB connection details from ENV.
+- `config/deploy.yml` and `.kamal/secrets` fetch deployment secrets from the deployment secret manager or ENV.
+- No runtime config keeps a credentials fallback "just in case."
 
 ## Database Config
 

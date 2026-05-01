@@ -34,7 +34,7 @@ Everything else stays out of Active Record — putting business logic in the hig
 
 - Use `normalizes` instead of `before_validation` for data normalization (Rails 7.1+).
 - **Rules for enqueuing from callbacks** (`perform_later`, `deliver_later`):
-  - **`after_create` / `after_save` (inside transaction): don't enqueue directly** — the worker may execute before the record commits → `RecordNotFound`. On Rails 8.1, add `self.enqueue_after_transaction_commit = true` in `ApplicationJob` (default in 8.2).
+  - **`after_create` / `after_save` (inside transaction): don't enqueue directly** — the worker may execute before the record commits → `RecordNotFound`. Use `after_commit` when a callback needs to enqueue a secondary responsibility.
   - **`after_commit` callbacks may enqueue** — suitable for **secondary responsibilities** (notifications, audit logs, cache invalidation, Turbo broadcasts). This is a Rails Core–endorsed pattern (DHH: "all jobs should enqueue after the commit").
   - **Primary business logic** (core workflow orchestration, cross-model operations) goes in the Service layer, not callbacks — this is a readability and fan-in concern, not an enqueue safety issue.
   - Distinction (37signals, Jorge Manrubia): **secondary responsibilities** (simple, orthogonal, declaratively plugged in) → callbacks OK. **Primary logic** (complex flows defining core entity behavior) → explicit Service.

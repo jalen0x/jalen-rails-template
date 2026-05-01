@@ -53,6 +53,6 @@ The job can still `Widget.find` for the latest record when needed.
 ## Callback Enqueue Rules
 
 - **`after_commit` + secondary responsibilities (notifications, audit, stats) → OK** — a Rails Core–endorsed pattern.
-- **`after_create` / `after_save` (inside transaction) → ensure `enqueue_after_transaction_commit = true` is enabled** (default in Rails 8.2, manual in 8.1).
+- **`after_create` / `after_save` (inside transaction): don't enqueue directly** — use `after_commit` when a callback needs to enqueue a secondary responsibility.
 - **Primary business logic → Service layer**, not callbacks.
 - See `rails-models.md` "Callbacks & Network I/O" and `async-external-calls.md` "Correct Usage of Callback Enqueuing."

@@ -50,6 +50,7 @@ Split another service only when the sub-process has its own business name or mul
 - **Methods are verbs**: `create_widget(params)`, `count_tokens(messages:)`, `change_to_95_cents`.
 - **No generic `run` / `call` / `perform`** — they erase intent and block private-method decomposition.
 - Sub-namespaces only for real grouping (`OneOff::`, `Admin::`).
+- Architecture docs, diagrams, and examples must use the same names. Do not write `SchedulingService.call(...)` in a design doc and expect implementation to stay behavior-revealing.
 
 ```ruby
 # Good — reads like a sentence
