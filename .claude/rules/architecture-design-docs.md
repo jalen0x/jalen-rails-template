@@ -50,3 +50,18 @@ eval(experiment.response_handler)
 - For capability/configuration state, choose one owner and one query interface before adding columns or tables.
 - Avoid storing the same fact in booleans and JSON/config rows unless the doc states precedence, sync rules, migration path, and one public reader.
 - Name the reader the rest of the app should use, e.g. `CapabilityCatalog.enabled_for?(experiment, step, :ai)`.
+
+## Design Review Checklist
+
+Before implementing a non-trivial design doc, scan for these failure modes:
+
+- runtime config has exactly one ENV-based source and no credentials fallback;
+- routes are resources first, with custom actions justified as exceptions;
+- controllers only translate HTTP and consume Result objects, not duplicate business decisions;
+- service names and methods reveal behavior, without `Service` suffix or generic `call`;
+- database design has one source of truth for workflow/capability state;
+- JSONB is not hiding permissions, workflow state, or frequently queried domain fields;
+- no executable code is stored in data;
+- external provider calls are behind jobs/adapters unless an inline exception is documented;
+- transactions contain database work only, with side effects after commit or through an outbox;
+- CI uses the package manager selected by the lockfile.

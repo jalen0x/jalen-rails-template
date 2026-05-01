@@ -31,6 +31,27 @@ A controller's job is exactly four things:
 3. Call the Service layer
 4. Route the response based on the result (redirect / render)
 
+## Controller ↔ Service Contract
+
+Controllers translate HTTP into a service call and translate the service result back into HTTP. They do not re-implement the service's business rules.
+
+```ruby
+result = WidgetCreator.new.create_widget(widget_params)
+
+if result.created?
+  redirect_to widget_path(result.widget), notice: t(".created")
+else
+  @widget = result.widget
+  render :new, status: :unprocessable_content
+end
+```
+
+- The controller may branch on Result predicates (`created?`, `queued_for_review?`, `not_eligible?`) to choose status, redirect, render, flash, or Turbo response.
+- The controller must not duplicate the condition that produced the predicate (`if current_user.admin? && widget.approved?` after the service already decided `published?`).
+- Do not pass raw `params` into services. Permit and type-coerce first, then pass business-shaped values.
+- Do not pass request-only objects (`request`, `response`, `session`, `flash`, cookies) into services. Pass explicit business context such as `current_user`, IDs, dates, or typed value objects.
+- Keep authorization at the boundary: scope/load records safely and call Pundit before invoking the service unless the service is explicitly an authorization-aware domain operation.
+
 ### `before_action` vs Explicit Private Methods
 
 - Cross-cutting concerns (`authenticate_user!`, Pundit verification, `rescue_from`) → `before_action` / controller-level hooks.

@@ -43,6 +43,30 @@ A service does **not** own request/response concerns. Controllers prepare truste
 
 Split another service only when the sub-process has its own business name or multiple callers. Otherwise, private methods are cheaper and clearer.
 
+## Transactions and Side Effects
+
+Transactions protect database state, not the outside world. Keep transaction blocks small and free of side effects that cannot roll back.
+
+- Inside a transaction: validate business preconditions, create/update/delete records, and use bang writes so failures roll back.
+- Outside a transaction: enqueue jobs, send mail, broadcast, call external APIs, write files, and perform provider SDK operations.
+- If a follow-up job depends on committed rows, enqueue it after the transaction block returns.
+- If a side effect must happen exactly once with a database change, model an outbox/event row in the transaction and let a job process it after commit.
+- Do not rescue inside the transaction just to return a failed Result; let unexpected failures roll back and surface.
+
+```ruby
+class WidgetPublisher
+  def publish_widget(widget)
+    publication = ActiveRecord::Base.transaction do
+      widget.update!(published_at: Time.current)
+      WidgetPublication.create!(widget:)
+    end
+
+    WidgetPublishedJob.perform_later(publication.id)
+    nil
+  end
+end
+```
+
 ## Naming
 
 - **Classes are business nouns**: `WidgetCreator`, `LegacyWidgets`, `ClaudeMessageTokenCounter`, `ClaudeModelCatalog`.
@@ -169,6 +193,5 @@ end
 ## Other
 
 - Business data/context goes in the verb method (`create_widget(widget)`), not split between `initialize` and `call`. Constructors take only dependencies the caller must configure.
-- Wrap multi-step DB work in `ActiveRecord::Base.transaction`; use bang writes inside the transaction so unexpected failures roll back and surface.
 - External API calls (HTTP, SSH, third-party SDK) stay **outside** transactions and belong in a Solid Queue job — see `async-external-calls.md`.
 - Never swallow exceptions silently.

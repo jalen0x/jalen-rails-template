@@ -99,6 +99,26 @@ Hardcoded boolean states (`active` / `deleted_at`) or simple two-way choices tha
 - Avoid storing the same fact in two competing shapes, such as per-step booleans plus experiment-level JSON rows, unless one is derived and the write path makes that obvious.
 - Add one public reader for the rest of the app (`enabled_for?(experiment, step, :ai)`) so callers do not guess which table/JSON field wins.
 
+## Workflow State Modeling
+
+Avoid competing booleans for one workflow. Multiple booleans such as `approved`, `published`, `archived`, `cancelled`, and `failed` can describe impossible combinations unless the model has clear invariants.
+
+- Use a single status column or lookup table when states are mutually exclusive.
+- Use timestamp columns (`published_at`, `cancelled_at`) when the business cares about when a transition happened.
+- Use separate event/history tables when the audit trail matters.
+- Keep independent facts as booleans only when they can truly vary independently.
+- Put state transitions in behavior-revealing services (`WidgetPublisher#publish_widget`), not scattered controller updates.
+- Add database constraints for impossible states when the rule is durable.
+
+## JSONB / Metadata
+
+JSONB is for flexible data at the edges, not a hiding place for core domain rules.
+
+- Good fits: provider payload snapshots, display metadata, low-query optional attributes, integration-specific raw responses.
+- Poor fits: permissions, workflow state, capability flags, money, ownership, frequently queried/sorted fields.
+- If application code branches on a JSON key in multiple places, promote it to a column/table or expose one reader that owns the interpretation.
+- Add generated columns or indexes only after measuring real query needs.
+
 ## Migration Workflow
 
 Write iteratively:
