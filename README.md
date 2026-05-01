@@ -148,6 +148,10 @@ To customize one in your app, copy it into `app/...` first:
 bin/rails generate template_base:override app/views/layouts/application.html.erb
 ```
 
+## Migration Guides
+
+- [Migrate Rails credentials to ENV-only runtime config](docs/migrations/credentials-to-env.md)
+
 ## Merging Updates
 
 To merge changes from the template, you will merge from the `upstream` remote:
