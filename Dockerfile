@@ -3,7 +3,7 @@
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
 # docker build -t jalen_rails_template .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name jalen_rails_template jalen_rails_template
+# docker run -d -p 80:80 -e SECRET_KEY_BASE=<secret> --name jalen_rails_template jalen_rails_template
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
@@ -51,8 +51,18 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# Precompile assets with throw-away build-time ENV values; real secrets are
+# supplied to the runtime container by Kamal.
+RUN SECRET_KEY_BASE_DUMMY=1 \
+    POSTGRES_PASSWORD=dummy \
+    DB_HOST=dummy \
+    CLOUDFLARE_ACCOUNT_ID=dummy \
+    R2_ACCESS_KEY_ID=dummy \
+    R2_SECRET_ACCESS_KEY=dummy \
+    R2_BUCKET_NAME=dummy \
+    GITHUB_CLIENT_ID=dummy \
+    GITHUB_CLIENT_SECRET=dummy \
+    ./bin/rails assets:precompile
 
 
 

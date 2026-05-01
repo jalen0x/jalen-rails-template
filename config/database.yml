@@ -1,3 +1,6 @@
+<% production_env = ENV.fetch("RAILS_ENV", ENV.fetch("RACK_ENV", "development")) == "production" %>
+<% require_discrete_db_env = production_env && ENV["DATABASE_URL"].to_s.empty? %>
+
 # PostgreSQL. Versions 9.3 and up are supported.
 #
 # Install the pg driver:
@@ -45,7 +48,7 @@ test:
   <<: *default
   database: jalen_rails_template_test
 
-# As with config/credentials.yml, you never want to store sensitive information,
+# You never want to store sensitive information,
 # like your database password, in your source code. If your source code is
 # ever seen by anyone, they now have access to your database.
 #
@@ -70,8 +73,8 @@ production:
     <<: *default
     database: jalen_rails_template_production
     username: jalen_rails_template
-    password: <%= Rails.application.credentials.dig(:database, :password) %>
-    host: <%= ENV["DB_HOST"] %>
+    password: <%= require_discrete_db_env ? ENV.fetch("POSTGRES_PASSWORD") : ENV["POSTGRES_PASSWORD"] %>
+    host: <%= require_discrete_db_env ? ENV.fetch("DB_HOST") : ENV["DB_HOST"] %>
   cache:
     <<: *primary_production
     database: jalen_rails_template_production_cache

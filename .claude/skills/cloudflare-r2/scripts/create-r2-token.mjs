@@ -1,14 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { execSync } from 'node:child_process';
-import { writeFileSync, unlinkSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 const ALLOWED_ENVS = ['production', 'staging', 'development'];
-
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const projectDir = resolve(scriptDir, '../../../..');
 
 const { values } = parseArgs({
   options: {
@@ -121,44 +115,20 @@ if (cdnHost) summary.cdn_host = cdnHost;
 
 console.log(JSON.stringify(summary, null, 2));
 
-const updates = {
-  cloudflare: {
-    account_id: accountId,
-    r2: {
-      access_key_id: accessKeyId,
-      secret_access_key: secretAccessKey,
-      bucket_name: bucketName,
-      cdn_secret: cdnSecret,
-    }
-  }
+const envValues = {
+  CLOUDFLARE_ACCOUNT_ID: accountId,
+  R2_ACCESS_KEY_ID: accessKeyId,
+  R2_SECRET_ACCESS_KEY: secretAccessKey,
+  R2_BUCKET_NAME: bucketName,
+  R2_CDN_SECRET: cdnSecret,
 };
-if (cdnHost) updates.cloudflare.r2.cdn_host = cdnHost;
+if (cdnHost) envValues.R2_CDN_HOST = cdnHost;
 
-saveToCredentials(env, updates, projectDir);
+printEnvValues(env, envValues);
 
-function saveToCredentials(env, updates, projectDir) {
-  const tmpScript = resolve(projectDir, 'tmp', 'update-credentials.rb');
-  writeFileSync(tmpScript, [
-    'require "yaml"',
-    'require "json"',
-    'path = ARGV[0]',
-    'yaml = YAML.safe_load(File.read(path)) || {}',
-    'updates = JSON.parse(ENV.fetch("CRED_UPDATES"))',
-    'def deep_merge(h1, h2)',
-    '  h1.merge(h2) { |_k, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? deep_merge(v1, v2) : v2 }',
-    'end',
-    'File.write(path, YAML.dump(deep_merge(yaml, updates)))',
-  ].join("\n") + "\n");
-
-  console.log(`\n==> 保存到 Rails credentials (${env})...`);
-  try {
-    execSync(`EDITOR="ruby '${tmpScript}'" bin/rails credentials:edit -e ${env}`, {
-      cwd: projectDir,
-      stdio: 'inherit',
-      env: { ...process.env, CRED_UPDATES: JSON.stringify(updates) }
-    });
-    console.log('==> 已保存到 credentials');
-  } finally {
-    try { unlinkSync(tmpScript); } catch {}
+function printEnvValues(env, values) {
+  console.log(`\n==> Add these ${env} ENV values to your secret manager / Kamal secrets:`);
+  for (const [key, value] of Object.entries(values)) {
+    console.log(`${key}=${value}`);
   }
 }

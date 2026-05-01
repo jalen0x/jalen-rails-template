@@ -24,9 +24,9 @@ end
 
 ## Delivery
 
-- **`deliver_later`** (default) — goes through the Solid Queue queue, doesn't block the current thread.
-- **`deliver_now`** — only when the caller truly needs synchronous completion (rare).
-- Don't call `deliver_later` directly from AR callbacks — see `async-external-calls.md` for callback enqueue rules.
+- **Outside a job:** use `deliver_later` so request/command code does not block on SMTP work.
+- **Inside a job that owns the email side effect:** `deliver_now` is acceptable because the queue already provides the async boundary.
+- Don't call mail delivery directly from AR callbacks — see `async-external-calls.md` for callback enqueue rules.
 
 ## Email Styling
 
@@ -47,17 +47,18 @@ Use `test/mailers/previews/` to preview emails in the browser:
 ```ruby
 class FinanceMailerPreview < ActionMailer::Preview
   def high_priced_widget
-    widget = Widget.new(
+    widget = FactoryBot.build(
+      :widget,
       name: "Stembolt",
       price_cents: 8100_00,
-      manufacturer: Manufacturer.new(name: "Cyberdyne")
+      manufacturer: FactoryBot.build(:manufacturer, name: "Cyberdyne")
     )
     FinanceMailer.high_priced_widget(widget)
   end
 end
 ```
 
-Build preview objects with `Model.new(attrs)` — don't write to the database.
+Build preview objects with `FactoryBot.build(...)` or `Model.new(attrs)` — don't write to the database.
 
 ## Testing
 

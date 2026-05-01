@@ -10,18 +10,8 @@ Production uses Cloudflare R2 via the standard S3 service. Development and test 
 
 ## Configuration
 
-- `config/storage.yml` has a `cloudflare:` service block using `Rails.application.credentials.dig(:cloudflare, ...)`.
+- `config/storage.yml` has a `cloudflare:` service block backed by ENV values (`CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`).
 - `config/environments/production.rb` sets `config.active_storage.service = :cloudflare`.
-- Credentials shape (see `lib/templates/rails/credentials/credentials.yml.tt`):
-
-```yaml
-cloudflare:
-  account_id: your_account_id
-  r2:
-    access_key_id: your_access_key
-    secret_access_key: your_secret_key
-    bucket_name: your_bucket
-```
 
 ## Active Storage Usage Rules
 
@@ -34,6 +24,6 @@ cloudflare:
 - Index / list pages must use variants (thumbnails) — never render full-size images in collections.
 - Video thumbnails require `ffmpeg` installed in the Docker image — add to the Dockerfile before using `video.preview`.
 
-## When Adding New Storage Credentials
+## When Adding New Storage Config
 
-Edit `lib/templates/rails/credentials/credentials.yml.tt` so future `bin/rails credentials:edit` runs in fresh environments see the expected shape.
+Use ENV/Kamal secrets for storage config. Do not add a Rails credentials fallback.

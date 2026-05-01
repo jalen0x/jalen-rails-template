@@ -5,10 +5,10 @@ paths:
 
 # Testing Standards (Minitest)
 
-- Use fixtures for test data. See "Fixtures Best Practices" below.
+- Use FactoryBot for test data by default. Do not add new Rails fixtures.
 - Use block syntax: `test "valid user can login" do`.
 - Use `setup` / `teardown` for common code.
-- Test both happy and sad paths + edge cases.
+- Test the minimum set of happy, sad, and edge paths needed for confidence; tests are risk reduction, not output.
 - Keep tests focused on a single concern, independent, and idempotent.
 - Never test the framework itself.
 - Never pipe test output into `cat`: `bin/rails test`, not `bin/rails test | cat`.
@@ -83,46 +83,18 @@ Match test parameters to the real wire format:
 ## Service Tests
 
 - **Don't mock Mailer** — see `mailers.md` testing section.
-- **"Decoy data"**: for query-related tests, ensure fixtures contain both a distractor record and the target, preventing code from passing with `first` or wrong `where`.
+- **Decoy data**: for query-related tests, create both a distractor record and the target, preventing code from passing with `first` or the wrong `where`.
+- Prefer testing the service seam directly for business edge cases instead of multiplying system tests.
 
-## Fixtures Best Practices
+## FactoryBot Best Practices
 
-Use Rails built-in fixtures, following the DHH / 37signals style:
+Realistic, valid factory records reduce hidden coupling between tests.
 
-- **Keep 1–2 base fixtures per model**, named descriptively (`:admin`, `:regular_user`). Avoid explosive growth.
-- **Use YAML anchors to DRY common attributes**:
-
-```yaml
-DEFAULTS: &DEFAULTS
-  created_at: <%= 3.weeks.ago.to_fs(:db) %>
-
-one:
-  name: Acme Widget
-  <<: *DEFAULTS
-```
-
-- **Reference associations by label**, never hardcode foreign key IDs:
-
-```yaml
-# widgets.yml
-stembolt:
-  name: Stembolt
-  manufacturer: acme    # references :acme in manufacturers.yml
-```
-
-- **Customize edge cases in-test with `update!`**, not by creating new fixture variants:
-
-```ruby
-test "high priced widget triggers alert" do
-  widget = widgets(:stembolt)
-  widget.update!(price_cents: 999_99)
-  # ...
-end
-```
-
-- **Fixture data should pass model validations** (even though validations are bypassed during loading) — avoid testing against data states that can never exist in production.
-- **Use `$LABEL` interpolation** for unique fields: `email: $LABEL@example.com`, `subdomain: $LABEL`.
-- **ERB only for simple cases** (timestamps, password hashes) — don't put complex logic in fixture files.
+- Factories should create valid records by default.
+- Use random-but-valid values (Faker is fine) to prevent tests from depending on one hardcoded value.
+- Use `FactoryBot.lint traits: true` rather than writing redundant factory smoke tests.
+- Use `FactoryBot.build` in mailer previews and other browser previews when persistence is not needed.
+- Customize edge cases in-test with `update!` or explicit factory attributes.
 
 ## DB Constraint Tests Use `update_column`
 

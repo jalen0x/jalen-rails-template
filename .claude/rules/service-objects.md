@@ -5,7 +5,7 @@ paths:
 
 # Service Object Standards
 
-Services are the business-logic layer. First principle: a call site should read like a business sentence, not a framework invocation.
+Services are the business-logic seam between Rails boundary objects and the domain. First principle: a call site should reveal behavior and read like a business sentence, not a framework invocation.
 
 ## Naming
 
@@ -55,7 +55,7 @@ end
 
 ## Other
 
-- Params in `initialize`, work in the verb method.
+- Business data/context goes in the verb method (`create_widget(widget)`), not split between `initialize` and `call`. Constructors take only dependencies the caller must configure.
 - Wrap multi-step DB work in `ActiveRecord::Base.transaction`.
 - External API calls (HTTP, SSH, third-party SDK) stay **outside** transactions and belong in a Solid Queue job — see `async-external-calls.md`.
 - Never swallow exceptions silently.

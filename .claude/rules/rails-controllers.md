@@ -6,7 +6,7 @@ paths:
 # Rails Controller Standards
 
 - Add method comments with HTTP verb and path: `# GET /categories`.
-- Use `before_action` for common setup.
+- Use `before_action` only for cross-cutting concerns (`authenticate_user!`, Pundit setup, `rescue_from`); load per-action data explicitly inside the action.
 - Use `pagy` for pagination: `@pagy, @resources = pagy(Resource.all)`.
 - Use `params.expect(:resource)` instead of `params.require`.
 - Use `status: :see_other` for redirects after `DELETE`.
@@ -33,7 +33,7 @@ A controller's job is exactly four things:
 
 ### `before_action` vs Explicit Private Methods
 
-- Cross-cutting concerns (`authenticate_user!`, `authorize_resource`, `rescue_from`) → `before_action`.
+- Cross-cutting concerns (`authenticate_user!`, Pundit verification, `rescue_from`) → `before_action` / controller-level hooks.
 - Per-action data loading (`@manufacturer = load_manufacturer`) → **call a private method explicitly**, not `before_action :set_manufacturer`. Explicit calls make execution order clear, easy to trace, and safe to refactor.
 
 ### Ideally Expose One `@instance_variable`
@@ -49,4 +49,4 @@ Each action should expose only one instance variable to the view. Three exceptio
 
 - Failed form submissions must use `render :new, status: :unprocessable_content` (renamed from `:unprocessable_entity` in Rails 8). Without the status, Turbo won't replace the form → user sees a blank page or no response.
 
-API endpoint rules are in the separate `api.md`.
+Routing rules are in `routes.md`. API endpoint rules are in `api.md`.

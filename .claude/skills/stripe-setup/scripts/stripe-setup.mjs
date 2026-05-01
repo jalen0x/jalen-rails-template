@@ -1,10 +1,6 @@
 #!/usr/bin/env node
 
 import { parseArgs } from "node:util";
-import { execSync } from "node:child_process";
-import { writeFileSync, unlinkSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 const STRIPE_BASE = "https://api.stripe.com/v1";
 const ALLOWED_ENVS = ["production", "staging", "development"];
@@ -23,9 +19,6 @@ const WEBHOOK_EVENTS = [
   "payment_intent.succeeded",
   "invoice.paid",
 ];
-
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const projectDir = resolve(scriptDir, "../../../..");
 
 const C = {
   reset: "\x1b[0m",
@@ -72,37 +65,15 @@ async function stripeReq(method, path, secretKey, params) {
   return data;
 }
 
-function saveToCredentials(env, updates) {
+function printEnvValues(env, values) {
   if (!ALLOWED_ENVS.includes(env)) {
     fail(`--env must be one of: ${ALLOWED_ENVS.join(" / ")}`);
     process.exit(1);
   }
 
-  const tmpScript = resolve(projectDir, "tmp", "update-credentials.rb");
-  writeFileSync(tmpScript, [
-    'require "yaml"',
-    'require "json"',
-    "path = ARGV[0]",
-    "yaml = YAML.safe_load(File.read(path)) || {}",
-    'updates = JSON.parse(ENV.fetch("CRED_UPDATES"))',
-    "def deep_merge(h1, h2)",
-    "  h1.merge(h2) { |_k, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? deep_merge(v1, v2) : v2 }",
-    "end",
-    "File.write(path, YAML.dump(deep_merge(yaml, updates)))",
-  ].join("\n") + "\n");
-
-  const envFlag = env === "development" ? "" : `-e ${env}`;
-
-  heading(`Saving to Rails credentials (${env})`);
-  try {
-    execSync(`EDITOR="ruby '${tmpScript}'" bin/rails credentials:edit ${envFlag}`, {
-      cwd: projectDir,
-      stdio: "inherit",
-      env: { ...process.env, CRED_UPDATES: JSON.stringify(updates) },
-    });
-    ok("Saved to credentials");
-  } finally {
-    try { unlinkSync(tmpScript); } catch {}
+  heading(`Add these ${env} ENV values to your secret manager / Kamal secrets`);
+  for (const [key, value] of Object.entries(values)) {
+    log(`${key}=${value}`);
   }
 }
 
@@ -154,29 +125,27 @@ async function cmdSetup(args) {
     process.exit(1);
   }
 
-  const credentialUpdates = {
-    stripe: {
-      public_key: publicKey,
-      private_key: secretKey,
-    },
+  const envValues = {
+    STRIPE_PUBLIC_KEY: publicKey,
+    STRIPE_SECRET_KEY: secretKey,
   };
 
   if (!isDev) {
     const webhook = await createWebhook(secretKey, values.domain);
-    credentialUpdates.stripe.signing_secret = webhook.secret;
+    envValues.STRIPE_SIGNING_SECRET = webhook.secret;
   } else {
     heading("Development mode");
     log("  Skipping webhook creation (use 'stripe listen' via Procfile.dev)");
   }
 
-  saveToCredentials(env, credentialUpdates);
+  printEnvValues(env, envValues);
 
   heading("Summary");
   ok(`Environment: ${env}`);
   ok(`Public key: ${mask(publicKey)}`);
   ok(`Secret key: ${mask(secretKey)}`);
-  if (credentialUpdates.stripe.signing_secret) {
-    ok(`Signing secret: ${mask(credentialUpdates.stripe.signing_secret)}`);
+  if (envValues.STRIPE_SIGNING_SECRET) {
+    ok(`Signing secret: ${mask(envValues.STRIPE_SIGNING_SECRET)}`);
   }
   if (!isDev) {
     ok(`Webhook: https://${values.domain}/webhooks/stripe`);
@@ -201,7 +170,7 @@ async function cmdCreateWebhook(args) {
   await createWebhook(values["secret-key"], values.domain);
 }
 
-async function cmdSaveCredentials(args) {
+async function cmdPrintEnv(args) {
   const { values } = parseArgs({
     args,
     options: {
@@ -214,40 +183,38 @@ async function cmdSaveCredentials(args) {
   });
 
   if (!values["public-key"] || !values["secret-key"] || !values.env) {
-    fail("Usage: save-credentials --public-key <pk_...> --secret-key <sk_...> [--signing-secret <whsec_...>] --env <environment>");
+    fail("Usage: print-env --public-key <pk_...> --secret-key <sk_...> [--signing-secret <whsec_...>] --env <environment>");
     process.exit(1);
   }
 
-  const updates = {
-    stripe: {
-      public_key: values["public-key"],
-      private_key: values["secret-key"],
-    },
+  const envValues = {
+    STRIPE_PUBLIC_KEY: values["public-key"],
+    STRIPE_SECRET_KEY: values["secret-key"],
   };
 
   if (values["signing-secret"]) {
-    updates.stripe.signing_secret = values["signing-secret"];
+    envValues.STRIPE_SIGNING_SECRET = values["signing-secret"];
   }
 
-  saveToCredentials(values.env, updates);
+  printEnvValues(values.env, envValues);
 }
 
 function showHelp() {
   log(`
-${C.bold}stripe-setup${C.reset} — Configure Stripe webhook and credentials for Jumpstart Pro Rails
+${C.bold}stripe-setup${C.reset} — Configure Stripe webhook and ENV values for Jumpstart Pro Rails
 
 ${C.bold}Usage:${C.reset}
   node stripe-setup.mjs <command> [options]
 
 ${C.bold}Commands:${C.reset}
-  setup              Full flow: create webhook (non-dev) + save credentials
+  setup              Full flow: create webhook (non-dev) + print ENV values
                        --public-key <pk_...>  --secret-key <sk_...>  --env <environment>
                        --domain <domain>  (required for staging/production)
 
   create-webhook     Create Stripe webhook endpoint only
                        --secret-key <sk_...>  --domain <domain>
 
-  save-credentials   Save Stripe keys to Rails credentials only
+  print-env          Print Stripe ENV values only
                        --public-key <pk_...>  --secret-key <sk_...>  --env <environment>
                        [--signing-secret <whsec_...>]
 
@@ -266,7 +233,7 @@ const [command, ...rest] = process.argv.slice(2);
 const commands = {
   setup: cmdSetup,
   "create-webhook": cmdCreateWebhook,
-  "save-credentials": cmdSaveCredentials,
+  "print-env": cmdPrintEnv,
 };
 
 if (!command || command === "--help" || command === "-h") {

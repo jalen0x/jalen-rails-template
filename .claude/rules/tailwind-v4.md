@@ -44,6 +44,10 @@ border-radius: var(--radius-base);
 
 Use logical properties: `ms-*` / `me-*` not `ml-*` / `mr-*`, `ps-*` / `pe-*` not `pl-*` / `pr-*`.
 
+## Design System Guardrails
+
+Flowbite semantic tokens are this template's design system implementation. Do not bypass them with arbitrary Tailwind values (`text-[13px]`, `font-[876]`, one-off colors) unless a design explicitly requires it and the value belongs in `@theme` or a component.
+
 ## UI Color Classes (Flowbite 4 Semantic)
 
 Never use hardcoded Tailwind colors (`gray-*`, `blue-*`, `primary-*`) or `dark:` overrides. Reference: `node_modules/flowbite/src/themes/default.css`.

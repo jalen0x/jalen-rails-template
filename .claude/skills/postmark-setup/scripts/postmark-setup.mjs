@@ -1,17 +1,10 @@
 #!/usr/bin/env node
 
 import { parseArgs } from "node:util";
-import { execSync } from "node:child_process";
-import { writeFileSync, unlinkSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 const POSTMARK_BASE = "https://api.postmarkapp.com";
 const CF_BASE = "https://api.cloudflare.com/client/v4";
 const ALLOWED_ENVS = ["production", "staging", "development"];
-
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const projectDir = resolve(scriptDir, "../../../..");
 
 const C = {
   reset: "\x1b[0m",
@@ -73,34 +66,15 @@ async function cfReq(method, path, body) {
   return data;
 }
 
-function saveToCredentials(env, updates) {
+function printEnvValues(env, values) {
   if (!ALLOWED_ENVS.includes(env)) {
     fail(`--env 必须是 ${ALLOWED_ENVS.join(" / ")}`);
     process.exit(1);
   }
-  const tmpScript = resolve(projectDir, "tmp", "update-credentials.rb");
-  writeFileSync(tmpScript, [
-    'require "yaml"',
-    'require "json"',
-    "path = ARGV[0]",
-    "yaml = YAML.safe_load(File.read(path)) || {}",
-    'updates = JSON.parse(ENV.fetch("CRED_UPDATES"))',
-    "def deep_merge(h1, h2)",
-    "  h1.merge(h2) { |_k, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? deep_merge(v1, v2) : v2 }",
-    "end",
-    "File.write(path, YAML.dump(deep_merge(yaml, updates)))",
-  ].join("\n") + "\n");
 
-  heading(`保存到 Rails credentials (${env})`);
-  try {
-    execSync(`EDITOR="ruby '${tmpScript}'" bin/rails credentials:edit -e ${env}`, {
-      cwd: projectDir,
-      stdio: "inherit",
-      env: { ...process.env, CRED_UPDATES: JSON.stringify(updates) },
-    });
-    ok("已保存到 credentials");
-  } finally {
-    try { unlinkSync(tmpScript); } catch {}
+  heading(`Add these ${env} ENV values to your secret manager / Kamal secrets`);
+  for (const [key, value] of Object.entries(values)) {
+    log(`${key}=${value}`);
   }
 }
 
@@ -215,7 +189,7 @@ async function cmdSetup(args) {
   const domainData = await addDomain(values.domain);
   await setupDns(values.domain, domainData.ID);
 
-  saveToCredentials(values.env, { postmark: { api_token: server.ApiTokens[0] } });
+  printEnvValues(values.env, { POSTMARK_API_TOKEN: server.ApiTokens[0] });
 
   heading("Summary");
   ok(`Server: ${values.server} (ID: ${server.ID})`);
@@ -228,7 +202,7 @@ async function cmdCreateServer(args) {
   const { values } = parseArgs({ args, options: { name: { type: "string" }, env: { type: "string" } }, strict: true });
   if (!values.name || !values.env) { fail("Usage: create-server --name <name> --env <environment>"); process.exit(1); }
   const server = await createServer(values.name);
-  saveToCredentials(values.env, { postmark: { api_token: server.ApiTokens[0] } });
+  printEnvValues(values.env, { POSTMARK_API_TOKEN: server.ApiTokens[0] });
 }
 
 async function cmdAddDomain(args) {

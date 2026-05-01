@@ -12,9 +12,9 @@ paths:
 - **Never use `discard_on`** — let jobs fail for debugging and retry. Exceptions: `discard_on ActiveRecord::RecordNotFound` and `discard_on ActiveJob::DeserializationError` are allowed (records no longer exist, retrying is pointless).
 - Don't rescue exceptions without re-raising — failures must surface.
 - Rails 8.1+: use `wait: :polynomially_longer` (renamed from `:exponentially_longer`).
-- Use `deliver_later` for mailers in jobs — `deliver_now` blocks the worker.
-- Use `perform_now` only when the current job depends on the result (e.g. upload must finish before video generation).
-- Pass models to jobs, not IDs — ActiveJob serializes/deserializes via GlobalID automatically.
+- Outside jobs, use `deliver_later` so controllers/services do not block on SMTP work. Inside a job, `deliver_now` is acceptable when that job is the async boundary and owns the side effect.
+- Use `perform_now` only when the caller truly depends on the result before continuing.
+- Pass primitive arguments by default: IDs, strings, numbers, booleans, and explicit snapshot values. Passing models via GlobalID is allowed only when you have considered serialization and retry behavior.
 
 ## Idempotency
 
@@ -28,7 +28,7 @@ Don't pack multiple independent side effects into one job. Split into single-eff
 # Bad: one job with multiple steps; retry may send duplicate emails
 PostWidgetCreationJob.perform_later(widget.id)
 
-# Good: each job has a single side effect
+# Good: each job has a single side effect and primitive args
 HighPricedWidgetCheckJob.perform_later(widget.id, widget.price_cents)
 WidgetFromNewManufacturerCheckJob.perform_later(widget.id, widget.manufacturer.created_at.to_s)
 ```
@@ -45,10 +45,10 @@ The job can still `Widget.find` for the latest record when needed.
 
 ### Serialization Gotchas (Must Write Tests)
 
-- ActiveJob arguments go through JSON serialization: symbol keys become strings, DateTime loses its type.
-- For Active Record objects, GlobalID handles serialization automatically (pass models, not IDs — already the convention in this project).
-- For DateTime, explicitly `.to_s` before passing, then `Date.parse` inside the job.
-- **Write a round-trip test for every job** (enqueue → dequeue → perform) covering argument type fidelity. The SR book author, with 8 years of Resque experience, still hit a DateTime serialization bug in his own book examples.
+- ActiveJob arguments go through serialization: symbol keys can become strings, Date/DateTime values can lose type fidelity depending on adapter and serializer path.
+- Prefer primitive args so retry behavior is obvious. For DateTime, explicitly `.to_s` before passing, then `Date.parse` / `Time.zone.parse` inside the job.
+- If passing an Active Record model through GlobalID, understand that perform-time lookup can fail if the record is gone and can observe changed state.
+- **Write a round-trip test for every job** (enqueue → dequeue → perform) covering argument type fidelity. Date/Time and hash serialization bugs are easy to miss without exercising the real adapter path.
 
 ## Callback Enqueue Rules
 

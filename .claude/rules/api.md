@@ -8,6 +8,10 @@ paths:
 
 # API Endpoint Standards
 
+## First Clarify the Use Case
+
+Before adding an API, write down who uses it and why: internal Ajax, internal service integration, partner integration, or public product API. Do not build public-API complexity for a private JSON endpoint.
+
 ## Architecture
 
 ```ruby

@@ -17,7 +17,6 @@ bundle exec erb_lint --lint-all   # ERB linter
 bin/ci                       # Run everything above locally
 bin/rails db:prepare         # Set up database
 bin/rails db:migrate         # Run migrations
-bin/rails credentials:edit   # Edit encrypted credentials
 ```
 
 ### Custom Rake Tasks
@@ -41,6 +40,7 @@ rails g template_base:override path/to/file  # Copy a template-base file into ap
 - **Authorization**: Pundit (`ApplicationPolicy` included in `ApplicationController`).
 - **Components**: ViewComponent under `app/components/`. Previews at `/lookbook` (development only) from `test/components/previews/`.
 - **Deployment**: Kamal with project-specific `config/deploy.yml` + Cloudflare R2 for Active Storage in production.
+- **Runtime config**: ENV-only for secrets/config, supplied through Kamal secrets or local env files when a loader such as `dotenv-rails` is configured. Do not read from Rails credentials.
 
 ### Four-Layer Model
 
@@ -78,8 +78,9 @@ Inspired by *Sustainable Web Development with Ruby on Rails* (D. Copeland, 2025 
 - Don't rescue exceptions without re-raising — failures must surface.
 - Use `retry_on` for transient external failures.
 - Rails 8.1+: use `wait: :polynomially_longer` (renamed from `:exponentially_longer`).
-- Use `deliver_later` for mailers in jobs; `deliver_now` blocks the worker.
+- Outside jobs, use `deliver_later` for mailers so request/command code does not block. Inside a job that owns the email side effect, `deliver_now` is acceptable because the queue is already the async boundary.
 - Use `perform_now` only when the caller truly needs the result before proceeding.
+- Pass primitive IDs/snapshot values to jobs by default. Passing models via GlobalID is allowed only when the lookup/retry semantics are intentional.
 
 ### Security
 
@@ -99,7 +100,9 @@ Inspired by *Sustainable Web Development with Ruby on Rails* (D. Copeland, 2025 
 
 ### Secrets & Config
 
-Never hardcode secrets — use `Rails.application.credentials`. To add new credential sections, edit `lib/templates/rails/credentials/credentials.yml.tt` so future `bin/rails credentials:edit` runs in fresh environments pick them up automatically. Do not commit `config/master.key`.
+Never hardcode secrets. Runtime config must be ENV-only (`ENV.fetch("NAME")`) and supplied through Kamal secrets or local env files when a loader such as `dotenv-rails` is configured. ENV values are strings; compare flags explicitly (`ENV["FEATURE"] == "true"`), never by truthiness.
+
+Do not add or read `Rails.application.credentials`. Do not commit `config/master.key`, `config/credentials/*.key`, `config/credentials.yml.enc`, `config/credentials/*.yml.enc`, or raw secret values.
 
 ### Template Base Overrides
 
@@ -188,15 +191,23 @@ When compressing context, preserve in priority order:
 Detailed guides are in `.claude/rules/` (auto-loaded by file path glob):
 
 - `api.md` — API endpoint architecture, auth, and JSON conventions
+- `architecture-evolution.md` — monolith/shared DB/microservices decision rules
 - `async-external-calls.md` — Controller → Job → Turbo broadcast pattern for external I/O
+- `authorization.md` — Devise, Pundit, role modeling, and access-control testing
+- `ci-workflow.md` — bin/setup, bin/dev, bin/ci, and automation standards
+- `configuration.md` — ENV-only runtime config and secrets
 - `database.md` — DB schema, migration, and constraint rules
+- `dependencies.md` — dependency addition, pinning, and update policy
+- `generators.md` — generators, template_base, and generated-code standards
 - `jobs.md` — Solid Queue job standards
 - `mailers.md` — Mailer conventions, styling, and testing
+- `observability.md` — logging, exception metadata, performance, and business metrics
 - `r2-storage.md` — Cloudflare R2 Active Storage usage
 - `rails-controllers.md` — Controller conventions
 - `rails-models.md` — Model conventions
 - `rails-views.md` — View conventions
 - `rake-tasks.md` — Rake task organization and conventions
+- `routes.md` — resource-oriented routing and custom URL rules
 - `service-objects.md` — Service object conventions
 - `stimulus-js.md` — Stimulus controller conventions
 - `tailwind-v4.md` — Tailwind v4 rules, breaking changes, design guidelines

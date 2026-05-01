@@ -272,15 +272,20 @@ Devise.setup do |config|
   config.sign_out_via = :delete
 
   # ==> OmniAuth
-  # GitHub OAuth credentials live in Rails credentials:
-  #   bin/rails credentials:edit
-  #   github:
-  #     client_id: ...
-  #     client_secret: ...
-  github_credentials = Rails.application.credentials.github || {}
+  github_client_id = ENV.fetch("GITHUB_CLIENT_ID") do
+    raise KeyError, "key not found: GITHUB_CLIENT_ID" if Rails.env.production?
+
+    "github-client-id"
+  end
+  github_client_secret = ENV.fetch("GITHUB_CLIENT_SECRET") do
+    raise KeyError, "key not found: GITHUB_CLIENT_SECRET" if Rails.env.production?
+
+    "github-client-secret"
+  end
+
   config.omniauth :github,
-                  github_credentials[:client_id],
-                  github_credentials[:client_secret],
+                  github_client_id,
+                  github_client_secret,
                   scope: "user:email"
 
   # ==> Warden configuration

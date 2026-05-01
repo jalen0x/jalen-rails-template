@@ -43,7 +43,7 @@ Controller                    Job                         Frontend
 
 ```ruby
 def restart
-  RestartInstanceJob.perform_later(@instance)
+  RestartInstanceJob.perform_later(@instance.id)
   respond_to do |format|
     format.html { redirect_to @instance, notice: t(".enqueued") }
     format.json { head :accepted }
@@ -58,7 +58,8 @@ class RestartInstanceJob < ApplicationJob
   queue_as :default
   retry_on Net::OpenTimeout, Net::ReadTimeout, attempts: 5, wait: :polynomially_longer
 
-  def perform(instance)
+  def perform(instance_id)
+    instance = Instance.find(instance_id)
     SshClient.for_instance(instance).service_restart("app")
     instance.update!(status: :running)
   rescue Net::OpenTimeout, Net::ReadTimeout => e

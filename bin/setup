@@ -3,11 +3,32 @@ require "fileutils"
 
 APP_ROOT = File.expand_path("..", __dir__)
 
+def help
+  puts <<~HELP
+    Usage: bin/setup [--skip-server]
+
+    Set up or update the development environment.
+
+    Options:
+      --skip-server   Prepare the app without starting bin/dev
+      -h, --help      Show this help
+
+    Common commands:
+      bin/dev
+      bin/ci
+  HELP
+end
+
 def system!(*args)
   system(*args, exception: true)
 end
 
 FileUtils.chdir APP_ROOT do
+  if (ARGV & [ "-h", "--help", "help" ]).any?
+    help
+    exit
+  end
+
   # This script is a way to set up or update your development environment automatically.
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.

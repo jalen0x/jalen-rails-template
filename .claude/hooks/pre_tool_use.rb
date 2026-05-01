@@ -4,7 +4,7 @@
 # PreToolUse hook — runs BEFORE Edit/Write/apply_patch/Bash land on disk.
 #
 # Guards:
-#   - Protected paths (lib/template_base/, credentials, schema, builds)
+#   - Protected paths (lib/template_base/, secret files, schema, builds)
 #   - Bash safety (force-push main, piped test output, assets:precompile)
 #
 # Policy checks (simulate edit result, then scan):
@@ -73,9 +73,9 @@ def protected_edit_reason(path)
 
     "Do not modify `lib/template_base/`. Copy the file into `app/` (use `rails g template_base:override <path>`) and override it there so template_base updates remain safe."
   when %r{\Aconfig/master\.key\z}, %r{\Aconfig/credentials\.yml\.enc\z}, %r{\Aconfig/credentials/.*\.key\z}
-    "Do not edit encrypted credentials or keys from Claude. Use `bin/rails credentials:edit` manually instead."
+    "Do not create or edit Rails credentials. This project uses ENV / Kamal secrets only."
   when %r{\Aconfig/credentials/.*\.yml\.enc\z}
-    "This project uses only `config/credentials.yml.enc`. Do not create or edit environment-specific encrypted credentials files."
+    "Do not create environment-specific encrypted credentials files. This project uses ENV / Kamal secrets only."
   when %r{\Aapp/assets/builds/}
     "Do not edit generated assets in `app/assets/builds/`. Change the source files under `app/assets/tailwind/` or `app/assets/javascripts/` instead."
   when %r{\Adb/(?:schema|cache_schema|cable_schema|queue_schema)\.rb\z}

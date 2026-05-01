@@ -13,7 +13,7 @@ paths:
 - Use `counter_cache` for `belongs_to` relationships needing counts.
 - Define constants at the top of the file.
 - Use `class Module::ClassName` form, not nested `module Module; class ClassName` definitions.
-- Pass models (not IDs) to jobs — serialized automatically via GlobalID.
+- Pass primitive IDs/snapshot values to jobs by default; pass models only when GlobalID lookup semantics are intentional.
 - Use Rails associations instead of manual SQL.
 - Use `includes` / `preload` to avoid N+1 queries.
 - Use `update_all` for batch operations — not per-record loops (watch for SQL length with large ID sets).

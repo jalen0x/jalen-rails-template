@@ -9,6 +9,18 @@ paths:
 
 > Data is more important than code. Code can be rewritten; data loss is an extinction-level event. Data integrity must rely on database constraints, not Rails validations (validations are a UX tool — `update_column` / external writes / `validates_uniqueness_of` race conditions all bypass them).
 
+## Logical Model First
+
+For non-trivial data changes, draft the logical model before writing the migration:
+
+- entities in user/business language,
+- attributes and types,
+- required vs optional,
+- uniqueness and other constraints,
+- main queries the UI/workflows need.
+
+The logical model builds consensus; the physical model enforces correctness. The less familiar the domain, the more important this step is.
+
 ## Schema Format
 
 - This project uses `config.active_record.schema_format = :sql` — the source file is `db/structure.sql`, not `db/schema.rb`. This allows check constraints, enum types, partial indexes, and other Postgres features.
@@ -80,9 +92,11 @@ Hardcoded boolean states (`active` / `deleted_at`) or simple two-way choices tha
 Write iteratively:
 
 ```bash
-bin/rails db:migrate && bin/rails db:migrate RAILS_ENV=test
-# verify with psql
-bin/rails db:rollback && bin/rails db:rollback RAILS_ENV=test
+bin/rails db:migrate
+bin/rails db:migrate RAILS_ENV=test
+# verify with psql or bin/psql if the project has that helper
+bin/rails db:rollback
+bin/rails db:rollback RAILS_ENV=test
 # continue iterating on the migration
 ```
 

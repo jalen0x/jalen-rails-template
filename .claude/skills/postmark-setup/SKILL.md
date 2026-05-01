@@ -12,7 +12,7 @@ Create Postmark server, add sender domain, and configure DKIM/Return-Path DNS vi
 `scripts/postmark-setup.mjs` (Node 18+, zero dependencies)
 
 ```bash
-# Full setup: create server + add domain + configure DNS + save credentials
+# Full setup: create server + add domain + configure DNS + print ENV values
 node scripts/postmark-setup.mjs setup --server "example.me" --domain "example.me" --env production
 
 # Individual steps
@@ -22,7 +22,7 @@ node scripts/postmark-setup.mjs setup-dns --domain "example.me" --domain-id 1234
 node scripts/postmark-setup.mjs verify-dns --domain-id 12345
 ```
 
-`setup` and `create-server` commands require `--env` to automatically save `postmark.api_token` to Rails encrypted credentials (deep merge).
+`setup` and `create-server` commands require `--env` and print `POSTMARK_API_TOKEN` for your secret manager / Kamal secrets.
 
 **Environment Variables:**
 
@@ -34,7 +34,7 @@ CLOUDFLARE_EMAIL           - Cloudflare account email
 
 ## Workflow
 
-1. `setup` — Full flow: create server, add domain, configure DNS records, save credentials
+1. `setup` — Full flow: create server, add domain, configure DNS records, print ENV values
 2. `setup-dns` — Add DKIM/Return-Path DNS if skipped (e.g., NS not propagated yet)
 3. `verify-dns` — Verify DKIM and Return-Path after DNS propagation
 

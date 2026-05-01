@@ -7,8 +7,11 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
-/.env*
+# Ignore local environment files. Commit `.env.development` / `.env.test`
+# only for non-secret defaults after adding a Rails env-file loader.
+/.env
+/.env.local
+/.env.*.local
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -30,7 +33,7 @@
 
 /public/assets
 
-# Ignore master key for decrypting credentials and more.
+# Ignore local secret/key files.
 /config/master.key
 
 /app/assets/builds/*
@@ -39,6 +42,7 @@
 # Ignore node modules
 /node_modules
 
-# Ignore key files for decrypting credentials and more.
+# Ignore Rails credentials artifacts if a generator creates them accidentally.
 /config/*.key
-
+/config/credentials.yml.enc
+/config/credentials/*.yml.enc
