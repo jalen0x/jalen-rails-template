@@ -17,19 +17,15 @@ paths:
 
 ## Diagnostic Helper: `with_clues`
 
-Automatically dump the current page HTML (and browser console) on test failure, then re-raise:
+Use the committed `with_clues` helper to dump the current page HTML and browser console on failure, then re-raise:
 
 ```ruby
-def with_clues(&block)
-  block.call
-rescue Exception => ex
-  puts "[with_clues] #{ex.message}"
-  puts page.html if respond_to?(:page)
-  raise
+with_clues do
+  assert_selector "h1", text: /dashboard/i
 end
 ```
 
-Only wrap the test you're actively debugging — don't leave `with_clues` in committed code. There's also a gem by the same name.
+Only wrap the assertion you're actively debugging — don't leave ad hoc `with_clues` calls in committed tests. There's also a gem by the same name.
 
 ## Confidence Checks vs Real Assertions
 
@@ -60,6 +56,7 @@ assert_equal 12345, widget.reload.price_cents  # the real assertion
 
 ## System Test Assertions
 
+- `ApplicationSystemTestCase` uses `:rack_test` by default. Tests that require JavaScript inherit from `BrowserSystemTestCase`.
 - Regex + case-insensitive: `assert_selector "h1", text: /stembolt/i`. Exact matches break on trivial copy changes.
 - **`data-testid` is a secondary tool** — don't add it everywhere from the start. First test against default DOM (`h1`/`h2`/semantic tags); introduce `data-testid` only when DOM changes cause false failures. Then: `Capybara.configure { |c| c.test_id = "data-testid" }`.
 - Use `data-testid` instead of CSS classes — it clearly signals "test hook" and won't be accidentally removed during refactoring.

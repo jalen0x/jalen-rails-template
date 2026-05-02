@@ -1,6 +1,6 @@
 require "application_system_test_case"
 
-class ToastsTest < ApplicationSystemTestCase
+class ToastsTest < BrowserSystemTestCase
   test "manual toast can be dismissed" do
     visit "/?toast_preview=1"
 
@@ -12,9 +12,9 @@ class ToastsTest < ApplicationSystemTestCase
   end
 
   test "auto dismiss toast disappears after its timeout" do
-    visit "/?toast_preview=1&dismiss_after=1500"
+    visit "/?toast_preview=1&dismiss_after=3000"
 
     assert_selector "[data-controller='toast']", text: "Preview toast from the template base."
-    assert_no_text "Preview toast from the template base.", wait: 5
+    assert_no_text "Preview toast from the template base.", wait: 6
   end
 end
