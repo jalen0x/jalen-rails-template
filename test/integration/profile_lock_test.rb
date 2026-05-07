@@ -27,6 +27,8 @@ class ProfileLockTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
 
     follow_redirect!
+    assert_redirected_to edit_user_registration_path
+    follow_redirect!
     assert_select "header"
   end
 
