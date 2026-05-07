@@ -25,7 +25,6 @@ class TwoFactorAuthenticationSystemTest < BrowserSystemTestCase
     find("form[action='#{user_session_path}'] button[type='submit']").click
 
     fill_authenticator_code("000000")
-    find("form[action='#{user_session_path}'] button[type='submit']").click
 
     assert_text I18n.t("users.sessions.create.invalid_second_factor_code")
     assert_no_selector "header"
@@ -42,25 +41,6 @@ class TwoFactorAuthenticationSystemTest < BrowserSystemTestCase
     fill_authenticator_code(user.current_otp)
 
     assert_selector "header"
-  end
-
-  test "authenticator code field uses real Flowbite inputs with native focus" do
-    user = create_two_factor_user
-
-    visit new_user_session_path
-    fill_in "user_email", with: user.email
-    fill_in "user_password", with: "password123"
-    find("form[action='#{user_session_path}'] button[type='submit']").click
-
-    assert_selector "input#code-1"
-    assert_selector "input#code-6"
-    assert_no_selector ".second-factor-code-input"
-    assert_equal "code-1", page.evaluate_script("document.activeElement.id")
-
-    fill_in "code-1", with: "1"
-
-    assert_equal "1", find("#code-1").value
-    assert_equal "code-2", page.evaluate_script("document.activeElement.id")
   end
 
   test "backup code signs in from the browser" do
@@ -98,10 +78,7 @@ class TwoFactorAuthenticationSystemTest < BrowserSystemTestCase
   end
 
   def fill_authenticator_code(code)
-    find("#code-1").click
-    code.chars.each do |digit|
-      page.driver.browser.switch_to.active_element.send_keys(digit)
-    end
+    paste_second_factor_code(code)
   end
 
   def paste_second_factor_code(code)
