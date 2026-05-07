@@ -11,4 +11,12 @@ class AuthModalTest < ActionDispatch::IntegrationTest
       assert_select "form"
     end
   end
+
+  test "unauthenticated auth pages do not render the global header" do
+    get new_user_session_path
+
+    assert_response :success
+    assert_select "header", count: 0
+    assert_select "h1", text: I18n.t("devise.sessions.new.sign_in")
+  end
 end

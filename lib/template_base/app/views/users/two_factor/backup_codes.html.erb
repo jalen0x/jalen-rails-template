@@ -1,0 +1,23 @@
+<% content_for(:title) { t(".title") } %>
+
+<section class="mx-auto w-full max-w-2xl rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-heading"><%= t(".title") %></h1>
+    <p class="mt-2 text-body-subtle"><%= t(".description") %></p>
+  </div>
+
+  <div class="mb-6 flex items-start rounded-base bg-warning-soft p-4 text-sm text-fg-warning" role="alert">
+    <svg class="me-2 mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    <p><%= t(".warning") %></p>
+  </div>
+
+  <div class="mb-6 grid grid-cols-2 gap-2 rounded-base bg-neutral-tertiary p-4 text-center">
+    <% @backup_codes.each do |code| %>
+      <code class="py-1 font-mono text-sm font-bold text-heading"><%= code %></code>
+    <% end %>
+  </div>
+
+  <%= link_to t(".done"), edit_user_registration_path, class: "inline-flex w-full items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+</section>

@@ -1,0 +1,80 @@
+require "application_system_test_case"
+
+class TwoFactorAuthenticationSystemTest < BrowserSystemTestCase
+  test "signed in user enables two factor authentication in the browser" do
+    user = FactoryBot.create(:user, password: "password123")
+    sign_in_with_password(user)
+
+    visit edit_user_registration_path
+    click_link I18n.t("devise.registrations.edit.two_factor.enable")
+
+    setup_secret = find("code").text
+    fill_in "second_factor_code_input", with: ROTP::TOTP.new(setup_secret).now
+    find("form[action='#{user_two_factor_path}'] button[type='submit']").click
+
+    assert_text I18n.t("users.two_factor.backup_codes.title")
+    assert_selector "code", minimum: 1
+  end
+
+  test "invalid second factor code displays an error in the browser" do
+    user = create_two_factor_user
+
+    visit new_user_session_path
+    fill_in "user_email", with: user.email
+    fill_in "user_password", with: "password123"
+    find("form[action='#{user_session_path}'] button[type='submit']").click
+
+    fill_in "second_factor_code_input", with: "000000"
+    find("form[action='#{user_session_path}'] button[type='submit']").click
+
+    assert_text I18n.t("users.sessions.create.invalid_second_factor_code")
+    assert_no_selector "header"
+  end
+
+  test "authenticator code signs in automatically after six digits" do
+    user = create_two_factor_user
+
+    visit new_user_session_path
+    fill_in "user_email", with: user.email
+    fill_in "user_password", with: "password123"
+    find("form[action='#{user_session_path}'] button[type='submit']").click
+
+    fill_in "second_factor_code_input", with: user.current_otp
+
+    assert_selector "header"
+  end
+
+  test "backup code signs in from the browser" do
+    user = create_two_factor_user
+    backup_code = user.generate_otp_backup_codes!.first
+    user.save!
+
+    visit new_user_session_path
+    fill_in "user_email", with: user.email
+    fill_in "user_password", with: "password123"
+    find("form[action='#{user_session_path}'] button[type='submit']").click
+
+    fill_in "second_factor_code_input", with: backup_code
+    find("form[action='#{user_session_path}'] button[type='submit']").click
+
+    assert_selector "header"
+  end
+
+  private
+
+  def create_two_factor_user
+    FactoryBot.create(:user, password: "password123").tap do |user|
+      user.otp_secret = User.generate_otp_secret
+      user.otp_required_for_login = true
+      user.save!
+    end
+  end
+
+  def sign_in_with_password(user)
+    visit new_user_session_path
+    fill_in "user_email", with: user.email
+    fill_in "user_password", with: "password123"
+    find("form[action='#{user_session_path}'] button[type='submit']").click
+    assert_selector "header"
+  end
+end

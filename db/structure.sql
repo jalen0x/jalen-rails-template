@@ -21,8 +21,8 @@ SET default_table_access_method = heap;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp(6) with time zone NOT NULL,
-    updated_at timestamp(6) with time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -44,15 +44,19 @@ CREATE TABLE public.users (
     email character varying DEFAULT ''::character varying NOT NULL,
     encrypted_password character varying DEFAULT ''::character varying NOT NULL,
     reset_password_token character varying,
-    reset_password_sent_at timestamp(6) with time zone,
-    remember_created_at timestamp(6) with time zone,
+    reset_password_sent_at timestamp(6) without time zone,
+    remember_created_at timestamp(6) without time zone,
     first_name character varying,
     last_name character varying,
     provider character varying,
     uid character varying,
-    discarded_at timestamp(6) with time zone,
-    created_at timestamp(6) with time zone NOT NULL,
-    updated_at timestamp(6) with time zone NOT NULL
+    discarded_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    otp_secret character varying,
+    consumed_timestep integer,
+    otp_required_for_login boolean DEFAULT false NOT NULL,
+    otp_backup_codes character varying[] DEFAULT '{}'::character varying[] NOT NULL
 );
 
 
@@ -141,5 +145,7 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20260411171621');
+('20260507211732'),
+('20260411171621'),
+('0');
 

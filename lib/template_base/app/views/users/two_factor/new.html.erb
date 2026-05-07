@@ -1,0 +1,39 @@
+<% content_for(:title) { t(".title") } %>
+
+<section class="mx-auto w-full max-w-2xl rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-heading"><%= t(".title") %></h1>
+    <p class="mt-2 text-body-subtle"><%= t(".description") %></p>
+  </div>
+
+  <ol class="mb-6 list-decimal space-y-2 ps-5 text-sm text-body">
+    <li><%= t(".step_install") %></li>
+    <li><%= t(".step_scan") %></li>
+    <li><%= t(".step_verify") %></li>
+  </ol>
+
+  <div class="mb-6 rounded-base border border-default bg-white p-4">
+    <%= @qr_code_svg.html_safe %>
+  </div>
+
+  <div class="mb-6 rounded-base bg-neutral-secondary-soft p-4 text-sm text-body">
+    <p class="mb-2 font-medium text-heading"><%= t(".manual_entry") %></p>
+    <code class="break-all rounded-base bg-neutral-tertiary px-2 py-1 text-heading"><%= @setup_secret %></code>
+  </div>
+
+  <% if flash[:alert].present? %>
+    <p class="mb-4 text-sm text-fg-danger"><%= flash[:alert] %></p>
+  <% end %>
+
+  <%= form_with url: user_two_factor_path, data: { turbo: false }, html: { class: "space-y-4" } do |form| %>
+    <div>
+      <%= form.label :second_factor_code, t(".verification_code"), class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= render "devise/shared/second_factor_code_field", form: form, field: :second_factor_code %>
+    </div>
+
+    <div class="flex items-center justify-between gap-3">
+      <%= link_to t(".cancel"), edit_user_registration_path, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+      <%= form.button button_text(t(".enable"), disable_with: t(".enabling")), class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+    </div>
+  <% end %>
+</section>

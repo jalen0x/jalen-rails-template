@@ -1,5 +1,21 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
+  devise_for :users,
+             controllers: {
+               omniauth_callbacks: "users/omniauth_callbacks",
+               passwords: "users/passwords",
+               sessions: "users/sessions"
+             }
+
+  devise_scope :user do
+    get "users/sign_in/two_factor",
+        to: "users/sessions#new_second_factor",
+        as: :new_user_second_factor_session
+
+    resource :user_two_factor,
+             path: "users/two_factor",
+             controller: "users/two_factor",
+             only: [ :new, :create, :destroy ]
+  end
 
   if Rails.env.development?
     mount Lookbook::Engine, at: "/lookbook"

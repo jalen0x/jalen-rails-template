@@ -4,6 +4,14 @@ zh-CN:
       close: "关闭弹窗"
   devise:
     passwords:
+      edit:
+        change_my_password: "修改密码"
+        change_your_password: "重置密码"
+        confirm_new_password: "确认新密码"
+        description: "为你的账号设置一个新密码。"
+        new_password: "新密码"
+        submitting: "更新中..."
+        title: "重置密码"
       new:
         description: "输入邮箱后，我们会发送重置密码说明。"
         heading: "忘记密码？"
@@ -17,6 +25,20 @@ zh-CN:
         sign_up: "注册"
         submitting: "提交中..."
         title: "注册"
+      edit:
+        current_password_hint: "需要输入当前密码来确认账号变更。"
+        new_password: "新密码"
+        password_confirmation: "确认新密码"
+        password_hint: "如果不想修改密码，请留空。"
+        title: "账号设置"
+        update: "更新账号"
+        updating: "更新中..."
+        two_factor:
+          description: "登录时要求同时输入密码和认证器 App 生成的验证码。"
+          disable: "关闭双因素认证"
+          disable_confirm: "确定要关闭这个账号的双因素认证吗？"
+          enable: "启用双因素认证"
+          title: "双因素认证"
     sessions:
       new:
         sign_in: "登录"
@@ -24,6 +46,13 @@ zh-CN:
         sign_up_link: "注册一个账号"
         signing_in: "登录中..."
         title: "登录"
+      two_factor:
+        backup_code_hint: "无法使用认证器 App？请输入你保存过的备份码。"
+        description: "打开认证器 App，输入验证码以完成登录。"
+        title: "双因素认证"
+        verification_code: "认证器验证码"
+        verify: "验证"
+        verifying: "验证中..."
     shared:
       or: "或"
       links:
@@ -41,3 +70,30 @@ zh-CN:
   oauth:
     github: "GitHub"
     sign_in_with: "使用 %{provider} 登录"
+  users:
+    sessions:
+      create:
+        invalid_second_factor_code: "认证器验证码或备份码无效。"
+      new_second_factor:
+        missing_challenge: "请先使用邮箱和密码登录。"
+    two_factor:
+      backup_codes:
+        description: "请把这些备份码保存在安全的位置。如果无法使用认证器 App，每个备份码都可以使用一次。"
+        done: "完成"
+        title: "保存备份码"
+        warning: "这些备份码只会显示一次。"
+      create:
+        invalid_second_factor_code: "认证器验证码无效。"
+      destroy:
+        disabled: "双因素认证已关闭。"
+      new:
+        cancel: "取消"
+        description: "使用认证器 App 扫描二维码，然后输入生成的验证码。"
+        enable: "启用双因素认证"
+        enabling: "启用中..."
+        manual_entry: "手动设置密钥"
+        step_install: "打开 1Password、Google Authenticator 或 Authy 等认证器 App。"
+        step_scan: "扫描二维码，或手动输入设置密钥。"
+        step_verify: "输入认证器验证码以确认设置。"
+        title: "设置双因素认证"
+        verification_code: "认证器验证码"

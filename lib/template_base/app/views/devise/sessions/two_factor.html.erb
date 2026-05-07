@@ -1,0 +1,28 @@
+<% content_for(:title) { t(".title") } %>
+<% content_for(:auth_illustration) { "girl-and-computer.svg" } %>
+<% @hide_flash_alert = true %>
+
+<% content_for :form_block do %>
+  <div class="mb-6">
+    <h1 class="mb-2 text-2xl font-extrabold leading-tight tracking-tight text-heading"><%= t(".title") %></h1>
+    <p class="text-body-subtle"><%= t(".description") %></p>
+  </div>
+
+  <%= form_with url: session_path(resource_name), data: modal_turbo_frame_data, html: { class: "mt-4 space-y-4 sm:mt-6 sm:space-y-6" } do |form| %>
+    <div>
+      <%= form.label :second_factor_code, t(".verification_code"), class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= render "devise/shared/second_factor_code_field", form: form, field: :second_factor_code, allow_backup_code: true, auto_submit: true %>
+      <% if flash[:alert].present? %>
+        <p class="mt-2 text-sm text-fg-danger"><%= flash[:alert] %></p>
+      <% end %>
+    </div>
+
+    <%= form.button button_text(t(".verify"), disable_with: t(".verifying")), class: "w-full text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 text-center" %>
+
+    <p class="rounded-base bg-neutral-secondary-soft p-4 text-sm text-body-subtle">
+      <%= t(".backup_code_hint") %>
+    </p>
+  <% end %>
+<% end %>
+
+<%= render "devise/shared/form_block" %>

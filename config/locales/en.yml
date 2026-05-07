@@ -12,3 +12,29 @@ en:
         success: "Signed in with GitHub."
         missing_email: "GitHub did not provide a usable email address for this account."
         invalid_user: "We could not sign you in with GitHub. Please try again."
+    sessions:
+      create:
+        invalid_second_factor_code: "Invalid authenticator code or backup code."
+      new_second_factor:
+        missing_challenge: "Please sign in with your email and password first."
+    two_factor:
+      backup_codes:
+        description: "Save these backup codes somewhere safe. Each code can be used once if you lose access to your authenticator app."
+        done: "Done"
+        title: "Save your backup codes"
+        warning: "These codes will only be shown once."
+      create:
+        invalid_second_factor_code: "Invalid authenticator code."
+      destroy:
+        disabled: "Two-factor authentication is now disabled."
+      new:
+        cancel: "Cancel"
+        description: "Scan the QR code with your authenticator app, then enter the code it generates."
+        enable: "Enable two-factor authentication"
+        enabling: "Enabling..."
+        manual_entry: "Manual setup key"
+        step_install: "Open an authenticator app such as 1Password, Google Authenticator, or Authy."
+        step_scan: "Scan this QR code or enter the setup key manually."
+        step_verify: "Enter the authenticator code to confirm setup."
+        title: "Set up two-factor authentication"
+        verification_code: "Authenticator code"

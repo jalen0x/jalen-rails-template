@@ -7,8 +7,8 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore local environment files. Commit `.env.development` / `.env.test`
-# only for non-secret defaults after adding a Rails env-file loader.
+# Ignore local environment overrides. `.env.development` / `.env.test`
+# hold committed non-secret defaults.
 /.env
 /.env.local
 /.env.*.local
