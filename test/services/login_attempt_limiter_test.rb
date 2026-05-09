@@ -1,12 +1,7 @@
 require "test_helper"
 
 class LoginAttemptLimiterTest < ActiveSupport::TestCase
-  # Inject a real cache because the test environment defaults to :null_store,
-  # which silently drops increment calls and would mask actual logic.
-  setup do
-    @store = ActiveSupport::Cache::MemoryStore.new
-    @limiter = LoginAttemptLimiter.new(store: @store)
-  end
+  setup { @limiter = LoginAttemptLimiter.new }
 
   test "blocks after five failures within the window" do
     5.times { @limiter.record_failure(email: "user@example.com", ip: "203.0.113.10") }

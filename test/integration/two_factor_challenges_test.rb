@@ -72,23 +72,21 @@ class TwoFactorChallengesTest < ActionDispatch::IntegrationTest
   end
 
   test "five failed challenges block subsequent attempts" do
-    inject_memory_cache do
-      start_pending_sign_in
+    start_pending_sign_in
 
-      5.times do
-        post two_factor_challenge_path, params: { two_factor_challenge: { otp_code: "000000" } }
-      end
-
-      post two_factor_challenge_path, params: {
-        two_factor_challenge: { otp_code: ROTP::TOTP.new(@secret).now }
-      }
-      assert_response :too_many_requests
-
-      # Fresh sign-in with the password should also be rate-limited because the
-      # limiter is keyed by email + IP.
-      post user_session_path, params: { user: { email: @user.email, password: "password123" } }
-      assert_response :too_many_requests
+    5.times do
+      post two_factor_challenge_path, params: { two_factor_challenge: { otp_code: "000000" } }
     end
+
+    post two_factor_challenge_path, params: {
+      two_factor_challenge: { otp_code: ROTP::TOTP.new(@secret).now }
+    }
+    assert_response :too_many_requests
+
+    # Fresh sign-in with the password should also be rate-limited because the
+    # limiter is keyed by email + IP.
+    post user_session_path, params: { user: { email: @user.email, password: "password123" } }
+    assert_response :too_many_requests
   end
 
   test "remember me checked at sign in is honoured after the challenge" do
@@ -120,13 +118,5 @@ class TwoFactorChallengesTest < ActionDispatch::IntegrationTest
 
   def start_pending_sign_in
     post user_session_path, params: { user: { email: @user.email, password: "password123" } }
-  end
-
-  def inject_memory_cache
-    previous = Rails.cache
-    Rails.cache = ActiveSupport::Cache::MemoryStore.new
-    yield
-  ensure
-    Rails.cache = previous
   end
 end

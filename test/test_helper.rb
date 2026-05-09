@@ -13,5 +13,7 @@ module ActiveSupport
 
     # Run tests in parallel with specified workers
     parallelize(workers: :number_of_processors)
+
+    setup { Rails.cache.clear }
   end
 end
