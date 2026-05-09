@@ -10,12 +10,10 @@ class TwoFactorChallengesController < ApplicationController
 
   # POST /two_factor_challenge
   def create
-    if valid_two_factor_code?(two_factor_challenge_params[:otp_code])
-      remember_me_enabled = session.delete(:pending_two_factor_remember_me)
-      session.delete(:pending_two_factor_user_id)
-      remember_me(@pending_user) if remember_me_enabled
-      sign_in(:user, @pending_user)
-      login_attempt_limiter.reset(email: @pending_user.email, ip: request.remote_ip)
+    result = TwoFactorChallengeVerifier.new.verify(user: @pending_user, code: two_factor_challenge_params[:otp_code])
+
+    if result.verified?
+      complete_pending_sign_in
       redirect_to after_sign_in_path_for(@pending_user), notice: t(".success")
     else
       login_attempt_limiter.record_failure(email: @pending_user.email, ip: request.remote_ip)
@@ -42,20 +40,16 @@ class TwoFactorChallengesController < ApplicationController
     render :new, status: :too_many_requests
   end
 
+  def complete_pending_sign_in
+    remember_me_enabled = session.delete(:pending_two_factor_remember_me)
+    session.delete(:pending_two_factor_user_id)
+    remember_me(@pending_user) if remember_me_enabled
+    sign_in(:user, @pending_user)
+    login_attempt_limiter.reset(email: @pending_user.email, ip: request.remote_ip)
+  end
+
   def login_attempt_limiter
     @login_attempt_limiter ||= LoginAttemptLimiter.new
-  end
-
-  def valid_two_factor_code?(code)
-    @pending_user.two_factor_authentication.verify_otp(code) || consume_recovery_code(code)
-  end
-
-  def consume_recovery_code(code)
-    recovery_code = @pending_user.two_factor_recovery_codes.unused.find do |candidate|
-      candidate.authenticate_code(code)
-    end
-
-    recovery_code&.consume!(code)
   end
 
   def two_factor_challenge_params
