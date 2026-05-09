@@ -6,24 +6,6 @@ Rails.application.routes.draw do
                sessions: "users/sessions"
              }
 
-  devise_scope :user do
-    get "users/sign_in/two_factor",
-        to: "users/sessions#new_second_factor",
-        as: :new_user_second_factor_session
-
-    resource :user_two_factor,
-             path: "users/two_factor",
-             controller: "users/two_factor",
-             only: [ :new, :create, :destroy ]
-
-    resource :user_profile_lock,
-             path: "users/profile_lock",
-             controller: "users/profile_locks",
-             only: [ :show, :create, :destroy ]
-  end
-
-  # New top-level resources for the 2FA + application lock refactor.
-  # Old resources above are removed in a follow-up commit once the cutover lands.
   resource :two_factor_authentication, only: [ :show, :create, :destroy ]
   resource :two_factor_challenge, only: [ :new, :create ]
   resource :two_factor_recovery_codes, only: :create

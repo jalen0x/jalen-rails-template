@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  include Users::Authenticatable, Users::Profile, Users::SoftDelete, Users::TwoFactorAuthentication
+  include Users::Authenticatable, Users::Profile, Users::SoftDelete
 
   has_many :two_factor_recovery_codes, dependent: :destroy
   has_one :two_factor_authentication, dependent: :destroy

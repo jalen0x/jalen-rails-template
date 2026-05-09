@@ -62,15 +62,20 @@
       <p class="mt-2 text-sm text-body-subtle"><%= t(".two_factor.description") %></p>
 
       <div class="mt-5">
-        <% if current_user.otp_required_for_login? %>
-          <%= button_to t(".two_factor.disable"),
-                user_two_factor_path,
-                method: :delete,
-                data: { turbo_confirm: t(".two_factor.disable_confirm"), turbo_confirm_variant: "danger" },
-                class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-        <% else %>
-          <%= link_to t(".two_factor.enable"), new_user_two_factor_path, class: "inline-flex text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-        <% end %>
+        <%= link_to(current_user.two_factor_enabled? ? t(".two_factor.manage") : t(".two_factor.enable"),
+              two_factor_authentication_path,
+              class: "inline-flex text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none") %>
+      </div>
+    </section>
+
+    <section class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs">
+      <h2 class="text-xl font-bold text-heading"><%= t(".application_lock.title") %></h2>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".application_lock.description") %></p>
+
+      <div class="mt-5">
+        <%= link_to(current_user.application_lock_enabled? ? t(".application_lock.manage") : t(".application_lock.enable"),
+              application_lock_path,
+              class: "inline-flex text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none") %>
       </div>
     </section>
   </aside>

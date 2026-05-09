@@ -145,11 +145,6 @@ GEM
       railties (>= 7.0)
       responders
       warden (~> 1.2.3)
-    devise-two-factor (6.4.0)
-      activesupport (>= 7.2, < 8.2)
-      devise (>= 4.0, < 6.0)
-      railties (>= 7.2, < 8.2)
-      rotp (~> 6.0)
     discard (1.4.0)
       activerecord (>= 4.2, < 9.0)
     dotenv (3.2.0)
@@ -572,7 +567,6 @@ DEPENDENCIES
   capybara
   debug
   devise (~> 5.0.0.rc)
-  devise-two-factor (~> 6.4)
   discard (~> 1.4)
   dotenv-rails
   erb_lint

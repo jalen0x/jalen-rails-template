@@ -227,11 +227,7 @@ CREATE TABLE public.users (
     uid character varying,
     discarded_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    otp_secret character varying,
-    consumed_timestep integer,
-    otp_required_for_login boolean DEFAULT false NOT NULL,
-    otp_backup_codes character varying[] DEFAULT '{}'::character varying[] NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -417,6 +413,7 @@ ALTER TABLE ONLY public.application_locks
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260509070003'),
 ('20260509070002'),
 ('20260509070001'),
 ('20260509070000'),

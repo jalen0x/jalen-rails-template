@@ -1,30 +1,13 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
 
-  # Legacy session-flag profile lock — removed in a follow-up commit.
-  before_action :redirect_locked_profile
-  helper_method :profile_locked?
-
-  # New PIN-based application lock.
   before_action :require_application_unlock
-  helper_method :application_lock_unlocked?
+  helper_method :application_lock_unlocked?, :application_lock_unlocked_or_disabled?
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
   private
-
-  def profile_locked?
-    user_signed_in? && session[:profile_locked].present?
-  end
-
-  def redirect_locked_profile
-    return unless profile_locked?
-    return if controller_path == "users/profile_locks"
-    return if devise_controller? && controller_name == "sessions" && action_name == "destroy"
-
-    redirect_to user_profile_lock_path
-  end
 
   def require_application_unlock
     user = warden.user(:user)
@@ -37,6 +20,13 @@ class ApplicationController < ActionController::Base
 
   def application_lock_unlocked?
     session[:application_lock_unlocked_user_id] == warden.user(:user)&.id
+  end
+
+  def application_lock_unlocked_or_disabled?
+    return true unless user_signed_in?
+    return true unless current_user.application_lock_enabled?
+
+    application_lock_unlocked?
   end
 
   def mark_application_unlocked
