@@ -11,34 +11,31 @@ class TwoFactorAuthenticationsController < ApplicationController
   # POST /two_factor_authentication
   def create
     authorize TwoFactorAuthentication
-    @two_factor_authentication = current_user.two_factor_authentication
 
-    if @two_factor_authentication
+    if current_user.two_factor_enabled?
       redirect_to two_factor_authentication_path, notice: t(".already_enabled")
       return
     end
 
     permitted = two_factor_authentication_params
-
-    unless current_user.valid_password?(permitted[:current_password])
-      render_setup_error(t(".invalid_password"))
-      return
-    end
-
-    unless setup_authentication.verify_otp(permitted[:otp_code])
-      render_setup_error(t(".invalid_otp"))
-      return
-    end
-
-    @recovery_codes = TwoFactorAuthenticationEnabler.new.enable(
+    result = TwoFactorAuthenticationEnabler.new.enable(
       user: current_user,
+      current_password: permitted[:current_password],
+      otp_code: permitted[:otp_code],
       otp_secret: session[:pending_two_factor_secret]
     )
-    session.delete(:pending_two_factor_secret)
-    @two_factor_authentication = current_user.two_factor_authentication
-    flash.now[:notice] = t(".enabled")
 
-    render :show, status: :created
+    if result.enabled?
+      session.delete(:pending_two_factor_secret)
+      @two_factor_authentication = result.two_factor_authentication
+      @recovery_codes = result.recovery_codes
+      flash.now[:notice] = t(".enabled")
+      render :show, status: :created
+    else
+      @error_message = t(".#{result.error}")
+      prepare_setup
+      render :show, status: :unprocessable_content
+    end
   end
 
   # DELETE /two_factor_authentication
@@ -84,12 +81,6 @@ class TwoFactorAuthenticationsController < ApplicationController
       otp_secret: session[:pending_two_factor_secret],
       enabled_at: Time.current
     )
-  end
-
-  def render_setup_error(message)
-    @error_message = message
-    prepare_setup
-    render :show, status: :unprocessable_content
   end
 
   def two_factor_authentication_params

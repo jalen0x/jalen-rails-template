@@ -4,7 +4,8 @@ class TwoFactorChallengeVerifierTest < ActiveSupport::TestCase
   setup do
     @user = FactoryBot.create(:user)
     @secret = TwoFactorAuthentication.generate_secret
-    @recovery_codes = TwoFactorAuthenticationEnabler.new.enable(user: @user, otp_secret: @secret)
+    @user.create_two_factor_authentication!(otp_secret: @secret, enabled_at: Time.current)
+    @recovery_codes = TwoFactorRecoveryCodeGenerator.new.generate_for(user: @user)
   end
 
   test "verifies a valid TOTP code" do

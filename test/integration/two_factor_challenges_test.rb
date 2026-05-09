@@ -4,7 +4,8 @@ class TwoFactorChallengesTest < ActionDispatch::IntegrationTest
   setup do
     @user = FactoryBot.create(:user, password: "password123")
     @secret = TwoFactorAuthentication.generate_secret
-    @recovery_codes = TwoFactorAuthenticationEnabler.new.enable(user: @user, otp_secret: @secret)
+    @user.create_two_factor_authentication!(otp_secret: @secret, enabled_at: Time.current)
+    @recovery_codes = TwoFactorRecoveryCodeGenerator.new.generate_for(user: @user)
   end
 
   test "sign in with password redirects 2FA users to the challenge" do

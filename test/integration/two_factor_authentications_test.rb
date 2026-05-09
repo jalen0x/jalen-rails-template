@@ -98,7 +98,7 @@ class TwoFactorAuthenticationsTest < ActionDispatch::IntegrationTest
   end
 
   def enable_two_factor
-    secret = TwoFactorAuthentication.generate_secret
-    TwoFactorAuthenticationEnabler.new.enable(user: @user, otp_secret: secret)
+    @user.create_two_factor_authentication!(otp_secret: TwoFactorAuthentication.generate_secret, enabled_at: Time.current)
+    TwoFactorRecoveryCodeGenerator.new.generate_for(user: @user)
   end
 end
