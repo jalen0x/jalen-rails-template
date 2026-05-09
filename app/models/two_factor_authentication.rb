@@ -16,6 +16,7 @@ class TwoFactorAuthentication < ApplicationRecord
 
   def verify_otp(code)
     return false if code.blank?
+    return false if otp_secret.blank?
 
     timestamp = totp.verify(
       code.to_s.delete(" "),
@@ -25,7 +26,8 @@ class TwoFactorAuthentication < ApplicationRecord
     )
     return false unless timestamp
 
-    update!(last_otp_at: Time.zone.at(timestamp)) if persisted?
+    self.last_otp_at = Time.zone.at(timestamp)
+    save! if persisted?
     true
   rescue ROTP::Base32::Base32Error
     false

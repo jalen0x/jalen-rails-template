@@ -1,5 +1,6 @@
 class TwoFactorAuthenticationEnabler
   def enable(user:, current_password:, otp_code:, otp_secret:)
+    return Result.new(enabled: false, error: :invalid_setup) if otp_secret.blank?
     return Result.new(enabled: false, error: :invalid_password) unless user.valid_password?(current_password)
 
     record = user.build_two_factor_authentication(otp_secret: otp_secret, enabled_at: Time.current)
@@ -7,6 +8,8 @@ class TwoFactorAuthenticationEnabler
 
     recovery_codes = nil
     TwoFactorAuthentication.transaction do
+      # record.last_otp_at was set in memory by verify_otp; save! persists it
+      # so the same OTP can't be replayed after enrolment.
       record.save!
       recovery_codes = TwoFactorRecoveryCodeGenerator.new.generate_for(user: user)
     end

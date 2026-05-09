@@ -88,6 +88,8 @@ en:
       already_enabled: "Two-factor authentication is already enabled."
       invalid_password: "Current password is incorrect."
       invalid_otp: "Verification code is invalid."
+      invalid_setup: "Setup session expired. Start again."
+      session_expired: "Setup session expired. Start again."
       enabled: "Two-factor authentication enabled."
     destroy:
       not_enabled: "Two-factor authentication is not enabled."

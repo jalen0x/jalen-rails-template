@@ -45,4 +45,29 @@ class TwoFactorAuthenticationEnablerTest < ActiveSupport::TestCase
     assert_equal :invalid_otp, result.error
     refute @user.reload.two_factor_enabled?
   end
+
+  test "rejects with :invalid_setup when otp_secret is blank" do
+    result = TwoFactorAuthenticationEnabler.new.enable(
+      user: @user,
+      current_password: "password123",
+      otp_code: "123456",
+      otp_secret: nil
+    )
+
+    refute_predicate result, :enabled?
+    assert_equal :invalid_setup, result.error
+  end
+
+  test "the OTP used to enable cannot be replayed afterwards" do
+    code = ROTP::TOTP.new(@secret).now
+    TwoFactorAuthenticationEnabler.new.enable(
+      user: @user,
+      current_password: "password123",
+      otp_code: code,
+      otp_secret: @secret
+    )
+
+    refute @user.reload.two_factor_authentication.verify_otp(code),
+           "Setup OTP should be marked consumed and unable to verify again"
+  end
 end

@@ -146,6 +146,8 @@ zh-CN:
       already_enabled: "双因素认证已经启用。"
       invalid_password: "当前密码不正确。"
       invalid_otp: "验证码不正确。"
+      invalid_setup: "设置会话已过期，请重新开始。"
+      session_expired: "设置会话已过期，请重新开始。"
       enabled: "已启用双因素认证。"
     destroy:
       not_enabled: "双因素认证未启用。"
