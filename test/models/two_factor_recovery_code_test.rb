@@ -23,6 +23,10 @@ class TwoFactorRecoveryCodeTest < ActiveSupport::TestCase
     assert @recovery_code.authenticate_code("  abcde-fghij  ")
   end
 
+  test "authenticate_code accepts the code without the formatting dash" do
+    assert @recovery_code.authenticate_code("abcdefghij")
+  end
+
   test "authenticate_code rejects a different code" do
     refute @recovery_code.authenticate_code("xxxxx-yyyyy")
   end

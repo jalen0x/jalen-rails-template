@@ -7,7 +7,7 @@ class TwoFactorRecoveryCode < ApplicationRecord
 
   scope :unused, -> { where(used_at: nil) }
 
-  def self.normalize(raw_code) = raw_code.to_s.strip.downcase
+  def self.normalize(raw_code) = raw_code.to_s.strip.downcase.delete("-")
 
   def code=(value)
     super(self.class.normalize(value))
