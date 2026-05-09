@@ -8,7 +8,7 @@ class TwoFactorAuthenticationSystemTest < BrowserSystemTestCase
     visit edit_user_registration_path
     click_link I18n.t("devise.registrations.edit.two_factor.enable")
 
-    setup_secret = find("code").text
+    setup_secret = find_field("totp_setup_secret", disabled: true).value
     fill_authenticator_code(ROTP::TOTP.new(setup_secret).now)
     find("form[action='#{user_two_factor_path}'] button[type='submit']").click
 

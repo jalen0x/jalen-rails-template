@@ -1,37 +1,51 @@
 <% content_for(:title) { t(".title") } %>
 
-<section class="mx-auto w-full max-w-2xl rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-heading"><%= t(".title") %></h1>
-    <p class="mt-2 text-body-subtle"><%= t(".description") %></p>
+<section class="mx-auto w-full max-w-xl rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8">
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold text-heading"><%= t(".title") %></h1>
+    <p class="mt-1.5 text-sm text-body"><%= t(".description") %></p>
+  </header>
+
+  <div class="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-6">
+    <div class="size-44 shrink-0 mx-auto sm:mx-0 rounded-base bg-white p-2">
+      <%= @qr_code_svg.html_safe %>
+    </div>
+
+    <div data-controller="clipboard">
+      <%= label_tag :totp_setup_secret, t(".manual_entry"), class: "block mb-2 text-sm font-medium text-heading" %>
+      <div class="relative">
+        <%= text_field_tag :totp_setup_secret, @setup_secret, readonly: true, disabled: true, autocomplete: "off", data: { clipboard_target: "source" }, class: "bg-neutral-secondary-medium border border-default-medium text-body text-sm font-mono rounded-base focus:ring-brand focus:border-brand block w-full ps-3 pe-20 py-2.5 shadow-xs placeholder:text-body" %>
+        <button type="button" data-action="clipboard#copy" class="absolute end-1.5 top-1/2 -translate-y-1/2 text-body bg-neutral-primary-strong border border-default-strong hover:bg-neutral-secondary-strong/70 hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft font-medium leading-5 rounded text-xs px-3 py-1.5 focus:outline-none">
+          <span data-clipboard-target="defaultState">
+            <span class="flex items-center">
+              <svg class="w-3.5 h-3.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-6 5h6m-6 4h6M10 3v4h4V3h-4Z" /></svg>
+              <span class="font-semibold"><%= t(".copy") %></span>
+            </span>
+          </span>
+          <span data-clipboard-target="successState" class="hidden">
+            <span class="flex items-center text-fg-brand">
+              <svg class="w-3.5 h-3.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-6 7 2 2 4-4m-5-9v4h4V3h-4Z" /></svg>
+              <span class="font-semibold"><%= t(".copied") %></span>
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <ol class="mb-6 list-decimal space-y-2 ps-5 text-sm text-body">
-    <li><%= t(".step_install") %></li>
-    <li><%= t(".step_scan") %></li>
-    <li><%= t(".step_verify") %></li>
-  </ol>
-
-  <div class="mb-6 rounded-base border border-default bg-white p-4">
-    <%= @qr_code_svg.html_safe %>
-  </div>
-
-  <div class="mb-6 rounded-base bg-neutral-secondary-soft p-4 text-sm text-body">
-    <p class="mb-2 font-medium text-heading"><%= t(".manual_entry") %></p>
-    <code class="break-all rounded-base bg-neutral-tertiary px-2 py-1 text-heading"><%= @setup_secret %></code>
-  </div>
+  <hr class="my-6 border-default">
 
   <% if flash[:alert].present? %>
     <p class="mb-4 text-sm text-fg-danger"><%= flash[:alert] %></p>
   <% end %>
 
-  <%= form_with url: user_two_factor_path, data: { turbo: false }, html: { class: "space-y-4" } do |form| %>
+  <%= form_with url: user_two_factor_path, data: { turbo: false } do |form| %>
     <div>
       <%= form.label :second_factor_code, t(".verification_code"), class: "block mb-2 text-sm font-medium text-heading" %>
       <%= render "devise/shared/second_factor_code_field", form: form, field: :second_factor_code %>
     </div>
 
-    <div class="flex items-center justify-between gap-3">
+    <div class="mt-6 flex items-center justify-end gap-3">
       <%= link_to t(".cancel"), edit_user_registration_path, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
       <%= form.button button_text(t(".enable"), disable_with: t(".enabling")), class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
     </div>

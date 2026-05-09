@@ -91,8 +91,11 @@ zh-CN:
         missing_challenge: "请先使用邮箱和密码登录。"
     two_factor:
       backup_codes:
+        copied: "已复制"
+        copy_all: "全部复制"
         description: "请把这些备份码保存在安全的位置。如果无法使用认证器 App，每个备份码都可以使用一次。"
         done: "完成"
+        download: "下载"
         title: "保存备份码"
         warning: "这些备份码只会显示一次。"
       create:
@@ -101,12 +104,11 @@ zh-CN:
         disabled: "双因素认证已关闭。"
       new:
         cancel: "取消"
+        copied: "已复制"
+        copy: "复制"
         description: "使用认证器 App 扫描二维码，然后输入生成的验证码。"
         enable: "启用双因素认证"
         enabling: "启用中..."
         manual_entry: "手动设置密钥"
-        step_install: "打开 1Password、Google Authenticator 或 Authy 等认证器 App。"
-        step_scan: "扫描二维码，或手动输入设置密钥。"
-        step_verify: "输入认证器验证码以确认设置。"
         title: "设置双因素认证"
         verification_code: "认证器验证码"
