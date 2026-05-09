@@ -27,6 +27,17 @@ class ApplicationLockSessionsTest < ActionDispatch::IntegrationTest
     assert_nil session[:application_lock_unlocked_user_id]
   end
 
+  test "five wrong pins block subsequent unlock attempts" do
+    5.times do
+      post application_lock_session_path, params: { application_lock: { pin: "000000" } }
+    end
+
+    post application_lock_session_path, params: { application_lock: { pin: "123456" } }
+
+    assert_response :too_many_requests
+    assert_nil session[:application_lock_unlocked_user_id]
+  end
+
   test "destroy clears the unlock and redirects back to the unlock screen" do
     post application_lock_session_path, params: { application_lock: { pin: "123456" } }
     assert_equal @user.id, session[:application_lock_unlocked_user_id]
