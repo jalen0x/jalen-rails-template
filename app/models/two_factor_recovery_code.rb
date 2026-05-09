@@ -20,8 +20,15 @@ class TwoFactorRecoveryCode < ApplicationRecord
   def used? = used_at.present?
 
   def consume!(raw_code)
-    return false if used?
+    return false if raw_code.blank?
+    return false unless persisted?
 
-    authenticate_code(raw_code) && update!(used_at: Time.current)
+    # Row lock so two concurrent challenges can't both consume the same code.
+    with_lock do
+      return false if used?
+      return false unless authenticate_code(raw_code)
+
+      update!(used_at: Time.current)
+    end
   end
 end

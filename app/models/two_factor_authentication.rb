@@ -18,17 +18,9 @@ class TwoFactorAuthentication < ApplicationRecord
     return false if code.blank?
     return false if otp_secret.blank?
 
-    timestamp = totp.verify(
-      code.to_s.delete(" "),
-      drift_behind: 30,
-      drift_ahead: 30,
-      after: last_otp_at&.to_i
-    )
-    return false unless timestamp
+    return perform_otp_verification(code) unless persisted?
 
-    self.last_otp_at = Time.zone.at(timestamp)
-    save! if persisted?
-    true
+    with_lock { perform_otp_verification(code) }
   rescue ROTP::Base32::Base32Error
     false
   end
@@ -41,6 +33,22 @@ class TwoFactorAuthentication < ApplicationRecord
   end
 
   private
+
+  # Caller must hold a row lock when self is persisted; otherwise two concurrent
+  # requests could verify the same OTP timestep before either persists last_otp_at.
+  def perform_otp_verification(code)
+    timestamp = totp.verify(
+      code.to_s.delete(" "),
+      drift_behind: 30,
+      drift_ahead: 30,
+      after: last_otp_at&.to_i
+    )
+    return false unless timestamp
+
+    self.last_otp_at = Time.zone.at(timestamp)
+    save! if persisted?
+    true
+  end
 
   def totp
     ROTP::TOTP.new(otp_secret, issuer: ISSUER)

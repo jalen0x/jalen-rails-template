@@ -40,6 +40,14 @@ class TwoFactorAuthenticationTest < ActiveSupport::TestCase
     assert_not_nil @two_factor.reload.last_otp_at
   end
 
+  test "verify_otp is single-use across separate model instances" do
+    code = ROTP::TOTP.new(@secret).now
+    other = TwoFactorAuthentication.find(@two_factor.id)
+
+    assert @two_factor.verify_otp(code)
+    refute other.verify_otp(code), "Same OTP must not verify a second time even via a stale instance"
+  end
+
   test "verify_otp returns false for blank input" do
     refute @two_factor.verify_otp(nil)
     refute @two_factor.verify_otp("")

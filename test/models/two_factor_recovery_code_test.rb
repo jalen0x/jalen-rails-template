@@ -42,6 +42,12 @@ class TwoFactorRecoveryCodeTest < ActiveSupport::TestCase
     refute @recovery_code.reload.used?
   end
 
+  test "consume! is single-use across separate model instances" do
+    other = TwoFactorRecoveryCode.find(@recovery_code.id)
+    assert @recovery_code.consume!("abcde-fghij")
+    refute other.consume!("abcde-fghij"), "Stale instance must not consume an already-used code"
+  end
+
   test "unused scope excludes consumed codes" do
     other = @user.two_factor_recovery_codes.create!(code: "12345-67890")
     other.consume!("12345-67890")
