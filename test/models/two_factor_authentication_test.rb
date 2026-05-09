@@ -28,6 +28,18 @@ class TwoFactorAuthenticationTest < ActiveSupport::TestCase
     refute @two_factor.verify_otp("000000")
   end
 
+  test "verify_otp refuses to consume the same code twice" do
+    code = ROTP::TOTP.new(@secret).now
+    assert @two_factor.verify_otp(code)
+    refute @two_factor.verify_otp(code)
+  end
+
+  test "verify_otp records the consumed timestep" do
+    code = ROTP::TOTP.new(@secret).now
+    @two_factor.verify_otp(code)
+    assert_not_nil @two_factor.reload.last_otp_at
+  end
+
   test "verify_otp returns false for blank input" do
     refute @two_factor.verify_otp(nil)
     refute @two_factor.verify_otp("")
