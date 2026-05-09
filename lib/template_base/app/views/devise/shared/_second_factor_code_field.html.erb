@@ -8,22 +8,23 @@
      class="flex justify-center">
   <div class="flex gap-2 sm:gap-4">
     <% 6.times do |index| %>
-      <div>
-        <%= label_tag "code-#{index + 1}", t("devise.shared.second_factor_code.digit_label", number: index + 1), class: "sr-only" %>
-        <%= text_field_tag "code_#{index + 1}",
-              nil,
-              id: "code-#{index + 1}",
-              maxlength: 1,
-              required: !allow_backup_code,
-              autofocus: index.zero?,
-              autocomplete: index.zero? ? "one-time-code" : "off",
-              inputmode: "numeric",
-              class: code_input_class,
-              data: {
-                second_factor_code_target: "input",
-                action: "input->second-factor-code#handleInput keydown->second-factor-code#handleKeydown paste->second-factor-code#handlePaste"
-              } %>
-      </div>
+      <%# No `name=` on these visible inputs so they never reach the server log;
+          the Stimulus controller mirrors their value into the hidden form field. %>
+      <%= tag.input(
+            type: "text",
+            id: "code-#{index + 1}",
+            maxlength: 1,
+            required: !allow_backup_code,
+            autofocus: index.zero?,
+            autocomplete: index.zero? ? "one-time-code" : "off",
+            inputmode: "numeric",
+            "aria-label": t("devise.shared.second_factor_code.digit_label", number: index + 1),
+            class: code_input_class,
+            data: {
+              second_factor_code_target: "input",
+              action: "input->second-factor-code#handleInput keydown->second-factor-code#handleKeydown paste->second-factor-code#handlePaste"
+            }
+          ) %>
     <% end %>
   </div>
 

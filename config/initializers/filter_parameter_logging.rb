@@ -6,7 +6,8 @@
 Rails.application.config.filter_parameters += [
   :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :cvv, :cvc,
   :otp_code,
-  :pin_code,
+  :pin,
+  :pin_confirmation,
   :pin_digest,
   :code_digest
 ]

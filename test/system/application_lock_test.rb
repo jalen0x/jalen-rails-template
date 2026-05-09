@@ -16,7 +16,7 @@ class ApplicationLockSystemTest < BrowserSystemTestCase
     assert_current_path new_application_lock_session_path
     assert_text I18n.t("application_lock_sessions.new.title")
 
-    "246810".chars.each_with_index { |digit, index| fill_in "code_#{index + 1}", with: digit }
+    "246810".chars.each_with_index { |digit, index| find("#code-#{index + 1}").set(digit) }
 
     # auto_submit fires once all six digits are entered; root_path then redirects
     # the signed-in user to their account settings.
